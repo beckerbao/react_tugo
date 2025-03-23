@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, Bell, Check, MapPin, Clock, Users } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Clock, Users } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -58,6 +58,13 @@ export default function TourScreen() {
     } else {
       router.replace('/(tabs)/home');
     }
+  };
+
+  const handleBookNow = () => {
+    router.push({
+      pathname: '/home/booking',
+      params: { tourName: tour.title }
+    });
   };
 
   if (!tour) {
@@ -124,7 +131,7 @@ export default function TourScreen() {
             <Text style={styles.sectionTitle}>Highlights</Text>
             {tour.highlights.map((highlight, index) => (
               <View key={index} style={styles.highlightItem}>
-                <Check size={20} color="#8B5CF6" />
+                <View style={styles.bulletPoint} />
                 <Text style={styles.highlightText}>{highlight}</Text>
               </View>
             ))}
@@ -137,7 +144,7 @@ export default function TourScreen() {
           <Text style={styles.priceLabel}>Price per person</Text>
           <Text style={styles.price}>${tour.price}</Text>
         </View>
-        <TouchableOpacity style={styles.bookButton}>
+        <TouchableOpacity style={styles.bookButton} onPress={handleBookNow}>
           <Text style={styles.bookButtonText}>Book Now</Text>
         </TouchableOpacity>
       </View>
@@ -247,11 +254,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  bulletPoint: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#8B5CF6',
+    marginRight: 12,
+  },
   highlightText: {
     fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#4B5563',
-    marginLeft: 12,
   },
   footer: {
     padding: 16,
@@ -298,10 +311,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
     marginBottom: 16,
-  },
-  backButtonText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    color: '#8B5CF6',
   },
 });

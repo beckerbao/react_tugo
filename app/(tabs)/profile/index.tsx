@@ -1,8 +1,10 @@
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CircleUser as UserCircle, Bookmark as BookmarkIcon, History, Settings2, LogOut } from 'lucide-react-native';
+import { CircleUser as UserCircle, Bookmark as BookmarkIcon, History, Settings2, LogOut, TestTube } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import NotificationBell from '@/components/NotificationBell';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 
 const menuItems = [
   {
@@ -24,9 +26,9 @@ const menuItems = [
     color: '#8B5CF6',
   },
   {
-    id: 'settings',
-    title: 'Settings',
-    icon: Settings2,
+    id: 'test-notifications',
+    title: 'Test Notifications',
+    icon: TestTube,
     color: '#8B5CF6',
   },
   {
@@ -37,18 +39,28 @@ const menuItems = [
   },
 ];
 
+const DEFAULT_AVATAR = 'https://api.review.tugo.com.vn/assets/images/avatar.png';
+
 export default function ProfileScreen() {
   const router = useRouter();
+  const { signOut } = useAuth();
+  const { profile } = useProfile();
 
-  const handleMenuPress = (id: string) => {
+  const handleMenuPress = async (id: string) => {
     switch (id) {
       case 'edit-profile':
         router.push('/profile/edit');
         break;
+      case 'travel-history':
+        router.push('/profile/history');
+        break;
+      case 'test-notifications':
+        router.push('/test-notifications');
+        break;
       case 'logout':
+        await signOut();
         router.replace('/login');
         break;
-      // Handle other menu items
     }
   };
 
@@ -56,19 +68,18 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profile</Text>
-        <NotificationBell count={3} />
+        <NotificationBell />
       </View>
 
       <ScrollView style={styles.content}>
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200' }}
+              source={{ uri: profile?.avatar_url || DEFAULT_AVATAR }}
               style={styles.avatar}
             />
           </View>
-          <Text style={styles.name}>Sarah Johnson</Text>
-          <Text style={styles.subtitle}>Travel Enthusiast</Text>
+          <Text style={styles.name}>{profile?.full_name || 'Guest User'}</Text>
         </View>
 
         <View style={styles.menuSection}>
@@ -146,11 +157,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#1F2937',
     marginBottom: 4,
-  },
-  subtitle: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#6B7280',
   },
   menuSection: {
     paddingTop: 8,

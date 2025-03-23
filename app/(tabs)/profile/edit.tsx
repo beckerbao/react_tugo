@@ -1,22 +1,63 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView, Platform } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Camera } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useProfile } from '@/hooks/useProfile';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
+
+const DEFAULT_AVATAR = 'https://api.review.tugo.com.vn/assets/images/avatar.png';
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const { profile, loading: profileLoading, updateProfile } = useProfile();
+  const { expoPushToken } = usePushNotifications();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
-    fullName: 'Sarah Johnson',
-    email: 'sarah.j@example.com',
-    phone: '+1 234 567 8900',
-    bio: 'Travel enthusiast passionate about exploring new destinations and cultures.',
+    full_name: '',
+    avatar_url: '',
+    phone_number: '',
   });
 
-  const handleSave = () => {
-    // Here you would typically save the data
-    router.back();
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        avatar_url: profile.avatar_url || '',
+        phone_number: profile.phone_number || '',
+      });
+    }
+  }, [profile]);
+
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      const updates = {
+        ...formData,
+        push_token: expoPushToken,
+      };
+
+      const { error } = await updateProfile(updates);
+      if (error) throw new Error(error);
+
+      router.back();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (profileLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#8B5CF6" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -29,10 +70,14 @@ export default function EditProfileScreen() {
       </View>
 
       <ScrollView style={styles.content}>
+        {error ? (
+          <Text style={styles.errorText}>{error}</Text>
+        ) : null}
+
         <View style={styles.avatarSection}>
           <View style={styles.avatarContainer}>
             <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200' }}
+              source={{ uri: formData.avatar_url || DEFAULT_AVATAR }}
               style={styles.avatar}
             />
             <TouchableOpacity style={styles.cameraButton}>
@@ -46,53 +91,47 @@ export default function EditProfileScreen() {
             <Text style={styles.label}>Full Name</Text>
             <TextInput
               style={styles.input}
-              value={formData.fullName}
-              onChangeText={(text) => setFormData({ ...formData, fullName: text })}
+              value={formData.full_name}
+              onChangeText={(text) => setFormData({ ...formData, full_name: text })}
               placeholder="Enter your full name"
             />
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>Phone Number</Text>
             <TextInput
               style={styles.input}
-              value={formData.email}
-              onChangeText={(text) => setFormData({ ...formData, email: text })}
-              placeholder="Enter your email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Phone</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.phone}
-              onChangeText={(text) => setFormData({ ...formData, phone: text })}
+              value={formData.phone_number}
+              onChangeText={(text) => setFormData({ ...formData, phone_number: text })}
               placeholder="Enter your phone number"
               keyboardType="phone-pad"
             />
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Bio</Text>
+            <Text style={styles.label}>Avatar URL</Text>
             <TextInput
-              style={[styles.input, styles.textArea]}
-              value={formData.bio}
-              onChangeText={(text) => setFormData({ ...formData, bio: text })}
-              placeholder="Tell us about yourself"
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
+              style={styles.input}
+              value={formData.avatar_url}
+              onChangeText={(text) => setFormData({ ...formData, avatar_url: text })}
+              placeholder="Enter avatar URL"
+              autoCapitalize="none"
             />
           </View>
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Save Changes</Text>
+        <TouchableOpacity 
+          style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+          onPress={handleSave}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.saveButtonText}>Save Changes</Text>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -103,6 +142,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -127,6 +171,13 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  errorText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    color: '#EF4444',
+    textAlign: 'center',
+    marginVertical: 16,
   },
   avatarSection: {
     alignItems: 'center',
@@ -179,10 +230,6 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: '#FFFFFF',
   },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
   footer: {
     padding: 16,
     borderTopWidth: 1,
@@ -194,6 +241,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#E5E7EB',
   },
   saveButtonText: {
     fontFamily: 'Inter-SemiBold',

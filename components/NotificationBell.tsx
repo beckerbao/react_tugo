@@ -1,14 +1,15 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Bell } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface NotificationBellProps {
-  count?: number;
   color?: string;
 }
 
-export default function NotificationBell({ count = 0, color = '#8B5CF6' }: NotificationBellProps) {
+export default function NotificationBell({ color = '#8B5CF6' }: NotificationBellProps) {
   const router = useRouter();
+  const { unreadCount } = useNotifications();
 
   return (
     <TouchableOpacity 
@@ -16,9 +17,11 @@ export default function NotificationBell({ count = 0, color = '#8B5CF6' }: Notif
       onPress={() => router.push('/notifications')}
     >
       <Bell size={24} color={color} />
-      {count > 0 && (
+      {unreadCount > 0 && (
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>{count > 99 ? '99+' : count}</Text>
+          <Text style={styles.badgeText}>
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </Text>
         </View>
       )}
     </TouchableOpacity>

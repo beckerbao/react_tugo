@@ -1,9 +1,11 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Clock } from 'lucide-react-native';
+import { Clock, LogIn } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import NotificationBell from '@/components/NotificationBell';
+import PopUpModal from '@/components/PopUpModal';
+import { useAuth } from '@/hooks/useAuth';
 
 const voucherList = [
   {
@@ -12,6 +14,7 @@ const voucherList = [
     discount: '20% off on selected tours',
     validUntil: 'Aug 31, 2024',
     isCollected: false,
+    code: 'SUMMER2024',
   },
   {
     id: 2,
@@ -19,6 +22,7 @@ const voucherList = [
     discount: '15% off on advance bookings',
     validUntil: 'Jul 15, 2024',
     isCollected: true,
+    code: 'EARLY2024',
   },
   {
     id: 3,
@@ -26,6 +30,7 @@ const voucherList = [
     discount: '10% off on weekend tours',
     validUntil: 'Sep 30, 2024',
     isCollected: false,
+    code: 'WEEKEND2024',
   },
   {
     id: 4,
@@ -33,29 +38,72 @@ const voucherList = [
     discount: '25% off on your first booking',
     validUntil: 'Valid for 30 days',
     isCollected: false,
+    code: 'FIRST2024',
   },
 ];
 
 export default function VouchersScreen() {
   const router = useRouter();
+  const { session, isGuest } = useAuth();
+  const isAuthenticated = !!session?.user && !isGuest;
   const [vouchers, setVouchers] = useState(voucherList);
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
+  const [selectedVoucherCode, setSelectedVoucherCode] = useState('');
 
   const handleVoucherPress = (id: number) => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
     router.push(`/home/voucher?id=${id}`);
   };
 
-  const handleCollect = (id: number, e: any) => {
+  const handleCollect = (id: number, code: string, e: any) => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
     e.stopPropagation();
+    setSelectedVoucherCode(code);
+    setShowVoucherModal(true);
+  };
+
+  const handleDownload = () => {
+    setShowVoucherModal(false);
     setVouchers(vouchers.map(voucher => 
-      voucher.id === id ? { ...voucher, isCollected: true } : voucher
+      voucher.code === selectedVoucherCode ? { ...voucher, isCollected: true } : voucher
     ));
   };
+
+  if (!isAuthenticated) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>My Vouchers</Text>
+          <NotificationBell />
+        </View>
+        <View style={styles.guestContainer}>
+          <LogIn size={48} color="#8B5CF6" />
+          <Text style={styles.guestTitle}>Login Required</Text>
+          <Text style={styles.guestMessage}>
+            Please login to view and collect vouchers
+          </Text>
+          <TouchableOpacity 
+            style={styles.loginButton}
+            onPress={() => router.push('/login')}
+          >
+            <Text style={styles.loginButtonText}>Login Now</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Vouchers</Text>
-        <NotificationBell count={3} />
+        <NotificationBell />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -78,7 +126,7 @@ export default function VouchersScreen() {
                 styles.collectButton,
                 voucher.isCollected && styles.collectedButton,
               ]}
-              onPress={(e) => handleCollect(voucher.id, e)}
+              onPress={(e) => handleCollect(voucher.id, voucher.code, e)}
               disabled={voucher.isCollected}
             >
               <Text style={[
@@ -91,6 +139,13 @@ export default function VouchersScreen() {
           </TouchableOpacity>
         ))}
       </ScrollView>
+
+      <PopUpModal
+        visible={showVoucherModal}
+        onClose={() => setShowVoucherModal(false)}
+        voucherCode={selectedVoucherCode}
+        onDownload={handleDownload}
+      />
     </SafeAreaView>
   );
 }
@@ -117,6 +172,37 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 16,
+  },
+  guestContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  guestTitle: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 20,
+    color: '#1F2937',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  guestMessage: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  loginButton: {
+    backgroundColor: '#8B5CF6',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  loginButtonText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    color: '#FFFFFF',
   },
   voucherCard: {
     flexDirection: 'row',

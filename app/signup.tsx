@@ -2,18 +2,19 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/services/supabase';
 
-export default function LoginScreen() {
+export default function SignUpScreen() {
   const router = useRouter();
-  const { signIn, continueAsGuest } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = async () => {
-    if (!email || !password) {
+  const handleSignUp = async () => {
+    if (!email || !password || !fullName || !phoneNumber) {
       setError('Please fill in all fields');
       return;
     }
@@ -21,42 +22,63 @@ export default function LoginScreen() {
     try {
       setLoading(true);
       setError('');
-      const { error: signInError } = await signIn(email, password);
-      
-      if (signInError) {
-        throw signInError;
-      }
 
-      router.replace('/(tabs)/home');
+      // Sign up the user with metadata
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            phone_number: phoneNumber,
+          },
+        },
+      });
+      
+      if (signUpError) throw signUpError;
+
+      // Show success message and redirect to login
+      alert('Registration successful! Please login to continue.');
+      router.replace('/login');
+      
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to login');
+      setError(err instanceof Error ? err.message : 'Failed to sign up');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleContinueAsGuest = () => {
-    continueAsGuest();
-    router.replace('/(tabs)/home');
-  };
-
-  const handleSignUp = () => {
-    router.push('/signup');
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Login</Text>
+        <Text style={styles.headerTitle}>Sign Up</Text>
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.welcomeText}>Welcome Back!</Text>
+        <Text style={styles.welcomeText}>Create Account</Text>
 
         <View style={styles.form}>
           {error ? (
             <Text style={styles.errorText}>{error}</Text>
           ) : null}
+
+          <Text style={styles.label}>Full Name</Text>
+          <TextInput
+            style={styles.input}
+            value={fullName}
+            onChangeText={setFullName}
+            placeholder="Enter your full name"
+            autoCapitalize="words"
+          />
+
+          <Text style={styles.label}>Phone Number</Text>
+          <TextInput
+            style={styles.input}
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            placeholder="Enter your phone number"
+            keyboardType="phone-pad"
+          />
 
           <Text style={styles.label}>Email</Text>
           <TextInput
@@ -80,39 +102,24 @@ export default function LoginScreen() {
 
           <TouchableOpacity 
             style={[
-              styles.loginButton,
-              (!email || !password || loading) && styles.loginButtonDisabled
+              styles.signUpButton,
+              (!email || !password || !fullName || !phoneNumber || loading) && styles.signUpButtonDisabled
             ]}
-            onPress={handleLogin}
-            disabled={!email || !password || loading}
+            onPress={handleSignUp}
+            disabled={!email || !password || !fullName || !phoneNumber || loading}
           >
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.loginButtonText}>Login</Text>
+              <Text style={styles.signUpButtonText}>Sign Up</Text>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={styles.signUpButton}
-            onPress={handleSignUp}
+            style={styles.loginButton}
+            onPress={() => router.push('/login')}
           >
-            <Text style={styles.signUpButtonText}>
-              Don't have an account? Sign Up
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <TouchableOpacity 
-            style={styles.guestButton}
-            onPress={handleContinueAsGuest}
-          >
-            <Text style={styles.guestButtonText}>Continue as Guest</Text>
+            <Text style={styles.loginButtonText}>Already have an account? Login</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -169,26 +176,26 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: '#FFFFFF',
   },
-  loginButton: {
+  signUpButton: {
     backgroundColor: '#8B5CF6',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 24,
   },
-  loginButtonDisabled: {
+  signUpButtonDisabled: {
     backgroundColor: '#E5E7EB',
   },
-  loginButtonText: {
+  signUpButtonText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#FFFFFF',
   },
-  signUpButton: {
+  loginButton: {
     paddingVertical: 12,
     alignItems: 'center',
   },
-  signUpButtonText: {
+  loginButtonText: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#8B5CF6',
@@ -199,32 +206,5 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     textAlign: 'center',
     marginBottom: 16,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E5E7EB',
-  },
-  dividerText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#6B7280',
-    marginHorizontal: 16,
-  },
-  guestButton: {
-    backgroundColor: '#F3F4F6',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  guestButtonText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    color: '#6B7280',
   },
 });

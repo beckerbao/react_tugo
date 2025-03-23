@@ -1,9 +1,10 @@
-import { View, Text, StyleSheet, TouchableOpacity, Platform, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Calendar, Clock, Ban } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import NotificationBell from '@/components/NotificationBell';
+import PopUpModal from '@/components/PopUpModal';
 
 const voucherData = {
   1: {
@@ -14,6 +15,7 @@ const voucherData = {
     validUntil: 'Aug 31, 2024',
     availability: 'Available for all tours',
     maxDiscount: '¥500',
+    code: 'SUMMER2024',
     terms: [
       'Valid for selected tours only',
       'Cannot be combined with other offers',
@@ -29,6 +31,7 @@ const voucherData = {
     validUntil: 'Dec 31, 2024',
     availability: 'Available for all tours',
     maxDiscount: '¥300',
+    code: 'EARLY2024',
     terms: [
       'Valid for advance bookings only',
       'Must book 30 days in advance',
@@ -41,7 +44,7 @@ const voucherData = {
 export default function VoucherScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const [showCollectedModal, setShowCollectedModal] = useState(false);
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
   const voucher = voucherData[Number(id)];
 
   const handleBack = () => {
@@ -53,11 +56,13 @@ export default function VoucherScreen() {
   };
 
   const handleCollect = () => {
-    setShowCollectedModal(true);
-    setTimeout(() => {
-      setShowCollectedModal(false);
-      handleBack();
-    }, 2000);
+    setShowVoucherModal(true);
+  };
+
+  const handleDownload = () => {
+    // Handle download logic here
+    setShowVoucherModal(false);
+    handleBack();
   };
 
   if (!voucher) {
@@ -123,17 +128,12 @@ export default function VoucherScreen() {
         </TouchableOpacity>
       </View>
 
-      <Modal
-        visible={showCollectedModal}
-        transparent={true}
-        animationType="fade"
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>Your voucher has been collected!</Text>
-          </View>
-        </View>
-      </Modal>
+      <PopUpModal
+        visible={showVoucherModal}
+        onClose={() => setShowVoucherModal(false)}
+        voucherCode={voucher.code}
+        onDownload={handleDownload}
+      />
     </SafeAreaView>
   );
 }
@@ -229,37 +229,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#FFFFFF',
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    padding: 24,
-    borderRadius: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 5,
-      },
-      web: {
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
-      },
-    }),
-  },
-  modalText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    color: '#1F2937',
-    textAlign: 'center',
-  },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -271,10 +240,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
     marginBottom: 16,
-  },
-  backButtonText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    color: '#8B5CF6',
   },
 });
