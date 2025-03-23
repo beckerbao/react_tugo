@@ -121,7 +121,7 @@ export default function VouchersScreen() {
                 <Text style={styles.validityText}>Valid until {voucher.validUntil}</Text>
               </View>
             </View>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={[
                 styles.collectButton,
                 voucher.isCollected && styles.collectedButton,
@@ -135,7 +135,7 @@ export default function VouchersScreen() {
               ]}>
                 {voucher.isCollected ? 'Collected' : 'Collect'}
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </TouchableOpacity>
         ))}
       </ScrollView>

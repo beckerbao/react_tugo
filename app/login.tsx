@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { signIn, continueAsGuest } = useAuth();
+  const { signIn, signInWithApple, continueAsGuest } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -34,6 +35,22 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
+
+  const handleAppleSignIn = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const { error } = await signInWithApple();
+      
+      if (error) throw error;
+      
+      router.replace('/(tabs)/home');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to sign in with Apple');
+    } finally {
+      setLoading(false);
+    }
+  }, [signInWithApple, router]);
 
   const handleContinueAsGuest = () => {
     continueAsGuest();
@@ -107,6 +124,16 @@ export default function LoginScreen() {
             <Text style={styles.dividerText}>or</Text>
             <View style={styles.dividerLine} />
           </View>
+
+          {Platform.OS === 'ios' && (
+            <AppleAuthentication.AppleAuthenticationButton
+              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+              cornerRadius={8}
+              style={styles.appleButton}
+              onPress={handleAppleSignIn}
+            />
+          )}
 
           <TouchableOpacity 
             style={styles.guestButton}
@@ -215,6 +242,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     marginHorizontal: 16,
+  },
+  appleButton: {
+    height: 50,
+    width: '100%',
+    marginBottom: 16,
   },
   guestButton: {
     backgroundColor: '#F3F4F6',

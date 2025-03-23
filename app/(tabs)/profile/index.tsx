@@ -13,24 +13,24 @@ const menuItems = [
     icon: UserCircle,
     color: '#8B5CF6',
   },
-  {
-    id: 'saved-places',
-    title: 'Saved Places',
-    icon: BookmarkIcon,
-    color: '#8B5CF6',
-  },
-  {
-    id: 'travel-history',
-    title: 'Travel History',
-    icon: History,
-    color: '#8B5CF6',
-  },
-  {
-    id: 'test-notifications',
-    title: 'Test Notifications',
-    icon: TestTube,
-    color: '#8B5CF6',
-  },
+  // {
+  //   id: 'saved-places',
+  //   title: 'Saved Places',
+  //   icon: BookmarkIcon,
+  //   color: '#8B5CF6',
+  // },
+  // {
+  //   id: 'travel-history',
+  //   title: 'Travel History',
+  //   icon: History,
+  //   color: '#8B5CF6',
+  // },
+  // {
+  //   id: 'test-notifications',
+  //   title: 'Test Notifications',
+  //   icon: TestTube,
+  //   color: '#8B5CF6',
+  // },
   {
     id: 'logout',
     title: 'Logout',

@@ -22,6 +22,10 @@ import ErrorView from '@/components/ErrorView';
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
+const LOGO_URL = 'https://api.review.tugo.com.vn/assets/images/tugo_logo.png';
+const LOGO_ASPECT_RATIO = 1.5;
+const LOGO_HEIGHT = 66;
+
 export default function HomeScreen() {
   const router = useRouter();
   const [showVoucherModal, setShowVoucherModal] = useState(false);
@@ -62,8 +66,8 @@ export default function HomeScreen() {
     return <ErrorView message={error.message} onRetry={fetchHomepage} />;
   }
 
-  const handleTourPress = (tourId: number) => {
-    router.push(`/home/tour?id=${tourId}`);
+  const handleTourPress = (tour: any) => {
+    router.push(`/home/tour?id=${tour.tour_id}`);
   };
 
   const handleDestinationPress = (destination: string) => {
@@ -94,7 +98,17 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.logo}>logo</Text>
+          <Image 
+            source={{ uri: LOGO_URL }}
+            style={[
+              styles.logo,
+              {
+                width: LOGO_HEIGHT * LOGO_ASPECT_RATIO,
+                height: LOGO_HEIGHT,
+              }
+            ]}
+            resizeMode="contain"
+          />
           <NotificationBell count={3} />
         </View>
 
@@ -104,29 +118,16 @@ export default function HomeScreen() {
           activeOpacity={0.7}
         >
           <Search size={20} color="#6B7280" style={styles.searchIcon} />
-          <Text style={styles.searchPlaceholder}>Where to?</Text>
+          <Text style={styles.searchPlaceholder}>Bạn tính đi đâu?</Text>
         </TouchableOpacity>
 
-        <View style={styles.heroSection}>
-          <Image
-            source={{ uri: data?.hero.image || 'https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=500' }}
-            style={styles.heroImage}
-          />
-          <View style={styles.heroContent}>
-            <Text style={styles.heroTitle}>{data?.hero.title || 'Explore Paradise'}</Text>
-            <Text style={styles.heroSubtitle}>
-              {data?.hero.subtitle || 'Best destinations for your next adventure'}
-            </Text>
-          </View>
-        </View>
-
-        <Text style={styles.sectionTitle}>Popular Tours</Text>
+        <Text style={styles.sectionTitle}>Các tour HOT</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.toursContainer}>
           {(data?.popular_tours || []).map((tour, index) => (
             <TouchableOpacity 
-              key={index}
+              key={`tour-${index}`}
               style={styles.tourCard}
-              onPress={() => handleTourPress(index + 1)}
+              onPress={() => handleTourPress(tour)}
             >
               <Image source={{ uri: tour.image }} style={styles.tourImage} />
               <View style={styles.tourContent}>
@@ -146,45 +147,11 @@ export default function HomeScreen() {
           ))}
         </ScrollView>
 
-        <Text style={styles.sectionTitle}>Special Offers</Text>
-        <View style={styles.offersContainer}>
-          {(data?.special_offers || []).map((offer, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.offerCard}
-              onPress={() => handleVoucherPress(index + 1)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.offerContent}>
-                <View style={styles.offerInfo}>
-                  <Text style={styles.offerTitle}>{offer.title}</Text>
-                  <Text style={styles.offerDescription}>{offer.description}</Text>
-                </View>
-                <TouchableOpacity 
-                  style={styles.collectButton}
-                  onPress={(e) => handleCollect(`${offer.title.toUpperCase().replace(/\s+/g, '')}2024`, e)}
-                >
-                  <Text style={styles.collectButtonText}>{offer.button_text}</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.offerImageContainer}>
-                <Image 
-                  source={{ uri: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500' }}
-                  style={styles.offerImage}
-                />
-                <View style={styles.offerOverlay}>
-                  <Text style={styles.validUntil}>Valid until Dec 31, 2024</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <Text style={styles.sectionTitle}>Popular Destinations</Text>
+        <Text style={styles.sectionTitle}>Các điểm đến phổ biến</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.destinationsContainer}>
           {(data?.popular_destinations || []).map((destination, index) => (
             <TouchableOpacity 
-              key={index}
+              key={`destination-${index}`}
               style={styles.destinationCard}
               onPress={() => handleDestinationPress(destination.name)}
             >
@@ -218,9 +185,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   logo: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 24,
-    color: '#1F2937',
+    // Width and height are set dynamically
   },
   searchContainer: {
     flexDirection: 'row',
@@ -240,34 +205,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#6B7280',
-  },
-  heroSection: {
-    margin: 16,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  heroImage: {
-    width: '100%',
-    height: 200,
-  },
-  heroContent: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  },
-  heroTitle: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 24,
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  heroSubtitle: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#FFFFFF',
   },
   sectionTitle: {
     fontFamily: 'Inter-Bold',
@@ -345,85 +282,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
     fontSize: 18,
     color: '#8B5CF6',
-  },
-  offersContainer: {
-    marginHorizontal: 16,
-  },
-  offerCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginBottom: 16,
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
-      web: {
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-      },
-    }),
-  },
-  offerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#F3E8FF',
-  },
-  offerInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  offerTitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  offerDescription: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  collectButton: {
-    backgroundColor: '#8B5CF6',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  collectButtonText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 14,
-    color: '#FFFFFF',
-  },
-  offerImageContainer: {
-    position: 'relative',
-    height: 120,
-  },
-  offerImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  offerOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  validUntil: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 12,
-    color: '#FFFFFF',
-    textAlign: 'center',
   },
   destinationsContainer: {
     paddingLeft: 16,

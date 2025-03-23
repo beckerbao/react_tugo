@@ -122,11 +122,11 @@ export default function VoucherScreen() {
         </View>
       </View>
 
-      <View style={styles.footer}>
+      {/* <View style={styles.footer}>
         <TouchableOpacity style={styles.collectButton} onPress={handleCollect}>
           <Text style={styles.collectButtonText}>Collect Now</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
 
       <PopUpModal
         visible={showVoucherModal}

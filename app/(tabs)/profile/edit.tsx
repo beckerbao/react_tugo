@@ -108,7 +108,7 @@ export default function EditProfileScreen() {
             />
           </View>
 
-          <View style={styles.formGroup}>
+          {/* <View style={styles.formGroup}>
             <Text style={styles.label}>Avatar URL</Text>
             <TextInput
               style={styles.input}
@@ -117,7 +117,7 @@ export default function EditProfileScreen() {
               placeholder="Enter avatar URL"
               autoCapitalize="none"
             />
-          </View>
+          </View> */}
         </View>
       </ScrollView>
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,68 +8,80 @@ import {
   ScrollView,
   Image,
   Platform,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search, Heart, MessageCircle, Share2, MoveVertical as MoreVertical } from 'lucide-react-native';
+import { Search } from 'lucide-react-native';
 import NotificationBell from '@/components/NotificationBell';
+import { useApi } from '@/hooks/useApi';
+import { api } from '@/services/api';
+import { Post } from '@/types/api';
+import ErrorView from '@/components/ErrorView';
 
-const feedPosts = [
-  {
-    id: 1,
-    user: {
-      name: 'Sarah Johnson',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
-      timeAgo: '2 hours ago',
-    },
-    content: 'Just had an amazing trip to Bali! The beaches were absolutely stunning 🌊',
-    image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800',
-    likes: 124,
-    comments: 38,
-  },
-  {
-    id: 2,
-    user: {
-      name: 'Mike Thompson',
-      avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200',
-      timeAgo: '5 hours ago',
-    },
-    content: 'Found this hidden gem in Tokyo! Best ramen I\'ve ever had 🍜',
-    image: 'https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=800',
-    likes: 89,
-    comments: 15,
-  },
-  {
-    id: 3,
-    user: {
-      name: 'Emily Chen',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200',
-      timeAgo: '1 day ago',
-    },
-    content: 'Sunset views from Santorini never disappoint ✨',
-    image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=800',
-    likes: 256,
-    comments: 42,
-  },
-];
+const API_BASE_URL = 'https://api.review.tugo.com.vn';
+const DEFAULT_AVATAR = `${API_BASE_URL}/assets/images/avatar.png`;
 
 export default function FeedScreen() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  
+  const { 
+    data: postsData, 
+    error, 
+    loading, 
+    execute: fetchPosts 
+  } = useApi(api.posts.getAll);
 
-  const handleLike = (postId: number) => {
-    // Handle like functionality
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchPosts();
+    setRefreshing(false);
+  }, [fetchPosts]);
+
+  const handleSearch = (text: string) => {
+    setSearchQuery(text);
+    // TODO: Implement search functionality
   };
 
-  const handleComment = (postId: number) => {
-    // Handle comment functionality
+  const getProfileImageUrl = (profileImage: string) => {
+    if (!profileImage) return DEFAULT_AVATAR;
+    return profileImage.startsWith('http') 
+      ? profileImage 
+      : `${API_BASE_URL}${profileImage}`;
   };
 
-  const handleShare = (postId: number) => {
-    // Handle share functionality
-  };
+  if (loading && !refreshing) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Feed</Text>
+          <NotificationBell count={3} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#8B5CF6" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-  const handleMore = (postId: number) => {
-    // Handle more options functionality
-  };
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Feed</Text>
+          <NotificationBell count={3} />
+        </View>
+        <ErrorView message={error.message} onRetry={fetchPosts} />
+      </SafeAreaView>
+    );
+  }
+
+  const posts = postsData?.data.posts || [];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -78,61 +90,49 @@ export default function FeedScreen() {
         <NotificationBell count={3} />
       </View>
 
-      <View style={styles.searchContainer}>
+      {/* <View style={styles.searchContainer}>
         <Search size={20} color="#6B7280" style={styles.searchIcon} />
         <TextInput
           placeholder="Search posts..."
           style={styles.searchInput}
           value={searchQuery}
-          onChangeText={setSearchQuery}
+          onChangeText={handleSearch}
           placeholderTextColor="#6B7280"
         />
-      </View>
+      </View> */}
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {feedPosts.map((post) => (
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {posts.map((post: Post) => (
           <View key={post.id} style={styles.postCard}>
             <View style={styles.postHeader}>
               <View style={styles.userInfo}>
-                <Image source={{ uri: post.user.avatar }} style={styles.avatar} />
+                <Image 
+                  source={{ uri: getProfileImageUrl(post.user.profile_image) }}
+                  style={styles.avatar} 
+                />
                 <View>
                   <Text style={styles.userName}>{post.user.name}</Text>
-                  <Text style={styles.timeAgo}>{post.user.timeAgo}</Text>
+                  <Text style={styles.timeAgo}>
+                    {new Date(post.created_at).toLocaleDateString()}
+                  </Text>
                 </View>
               </View>
-              <TouchableOpacity onPress={() => handleMore(post.id)}>
-                <MoreVertical size={20} color="#6B7280" />
-              </TouchableOpacity>
             </View>
 
-            <Text style={styles.postContent}>{post.content}</Text>
+            <Text style={styles.tourName}>{post.tour_name}</Text>
+            <Text style={styles.postContent}>
+              {post.content.split(' , xem thêm tại')[0]}
+            </Text>
 
-            <Image source={{ uri: post.image }} style={styles.postImage} />
-
-            <View style={styles.postActions}>
-              <TouchableOpacity 
-                style={styles.actionButton} 
-                onPress={() => handleLike(post.id)}
-              >
-                <Heart size={20} color="#6B7280" />
-                <Text style={styles.actionText}>{post.likes}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={() => handleComment(post.id)}
-              >
-                <MessageCircle size={20} color="#6B7280" />
-                <Text style={styles.actionText}>{post.comments}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={() => handleShare(post.id)}
-              >
-                <Share2 size={20} color="#6B7280" />
-              </TouchableOpacity>
-            </View>
+            {post.images && post.images.length > 0 && (
+              <Image source={{ uri: post.images[0] }} style={styles.postImage} />
+            )}
           </View>
         ))}
       </ScrollView>
@@ -180,6 +180,11 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   postCard: {
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
@@ -212,10 +217,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
   },
+  tourName: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 18,
+    color: '#1F2937',
+    marginBottom: 8,
+  },
   postContent: {
     fontFamily: 'Inter-Regular',
     fontSize: 16,
-    color: '#1F2937',
+    color: '#4B5563',
     marginBottom: 12,
     lineHeight: 24,
   },
@@ -224,20 +235,5 @@ const styles = StyleSheet.create({
     height: 300,
     borderRadius: 12,
     marginBottom: 12,
-  },
-  postActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 24,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  actionText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#6B7280',
   },
 });

@@ -1,18 +1,21 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Calendar } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import PopUpModal from '@/components/PopUpModal';
+import { api } from '@/services/api';
 
 export default function BookingScreen() {
   const router = useRouter();
-  const { tourName } = useLocalSearchParams();
+  const { tourId, tourName } = useLocalSearchParams();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     fullName: '',
     phoneNumber: '',
-    departureDate: '',
+    departureDate: new Date(),
   });
 
   const handleBack = () => {
@@ -23,8 +26,31 @@ export default function BookingScreen() {
     }
   };
 
-  const handleSubmit = () => {
-    setShowSuccessModal(true);
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      if (!formData.fullName || !formData.phoneNumber) {
+        throw new Error('Please fill in all required fields');
+      }
+
+      const { error: submitError } = await api.booking.submit({
+        tour_id: Number(tourId),
+        tour_name: tourName as string,
+        full_name: formData.fullName,
+        phone: formData.phoneNumber,
+        departure_date: formData.departureDate.toISOString().split('T')[0],
+      });
+
+      if (submitError) throw submitError;
+
+      setShowSuccessModal(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit booking');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCloseModal = () => {
@@ -43,6 +69,10 @@ export default function BookingScreen() {
       </View>
 
       <View style={styles.content}>
+        {error ? (
+          <Text style={styles.errorText}>{error}</Text>
+        ) : null}
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Selected Tour</Text>
           <View style={styles.tourCard}>
@@ -73,12 +103,12 @@ export default function BookingScreen() {
 
         <View style={styles.section}>
           <Text style={styles.label}>Departure Date</Text>
-          <TouchableOpacity style={styles.dateInput}>
-            <Text style={[styles.dateInputText, !formData.departureDate && styles.placeholder]}>
-              {formData.departureDate || '-/-/-'}
+          <View style={styles.dateInput}>
+            <Text style={styles.dateInputText}>
+              {formData.departureDate.toLocaleDateString()}
             </Text>
             <Calendar size={20} color="#6B7280" />
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -86,12 +116,16 @@ export default function BookingScreen() {
         <TouchableOpacity 
           style={[
             styles.submitButton,
-            (!formData.fullName || !formData.phoneNumber) && styles.submitButtonDisabled
+            (loading || !formData.fullName || !formData.phoneNumber) && styles.submitButtonDisabled
           ]}
           onPress={handleSubmit}
-          disabled={!formData.fullName || !formData.phoneNumber}
+          disabled={loading || !formData.fullName || !formData.phoneNumber}
         >
-          <Text style={styles.submitButtonText}>Submit Booking</Text>
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.submitButtonText}>Submit Booking</Text>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -133,6 +167,16 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 16,
+  },
+  errorText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    color: '#EF4444',
+    textAlign: 'center',
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: '#FEE2E2',
+    borderRadius: 8,
   },
   section: {
     marginBottom: 24,
@@ -183,9 +227,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#1F2937',
-  },
-  placeholder: {
-    color: '#9CA3AF',
   },
   footer: {
     padding: 16,
