@@ -38,15 +38,6 @@
       "typedRoutes": true,
       "tsconfigPaths": true
     },
-    "unstable_settings": {
-      "initialRouteName": "(tabs)/home",
-      "ignoreRoutes": [
-        "components/*",
-        "utils/*",
-        "services/*",
-        "hooks/*"
-      ]
-    },
     "extra": {
       "router": {
         "origin": false
