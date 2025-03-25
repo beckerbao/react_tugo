@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { PostsResponse } from '@/types/api';
 
 const API_BASE_URL = 'https://api.review.tugo.com.vn/api/v1';
 
@@ -16,6 +17,7 @@ export interface Hero {
 }
 
 export interface PopularDestination {
+  id: number;
   image: string;
   name: string;
 }
@@ -28,6 +30,7 @@ export interface PopularTour {
   rating: number;
   review_count: number;
   type: string;
+  tour_id: number;
 }
 
 export interface SpecialOffer {
@@ -41,6 +44,73 @@ export interface HomepageData {
   popular_destinations: PopularDestination[];
   popular_tours: PopularTour[];
   special_offers: SpecialOffer[];
+}
+
+export interface TourHighlight {
+  title: string;
+  description: string;
+}
+
+export interface TourItinerary {
+  day: string;
+  title: string;
+  description: string;
+}
+
+export interface TourPhotoGallery {
+  name: string;
+  image: string;
+}
+
+export interface TourIncluded {
+  title: string;
+  description: string;
+}
+
+export interface TourDetail {
+  id: number;
+  name: string;
+  duration: string;
+  type: string;
+  price: number;
+  image: string;
+  highlights: TourHighlight[];
+  itinerary: TourItinerary[];
+  photo_gallery: TourPhotoGallery[];
+  whats_included: TourIncluded[];
+}
+
+export interface SearchResult {
+  destination_id: number;
+  image: string;
+  name: string;
+  subtitle: string;
+}
+
+export interface DestinationTour {
+  duration: string;
+  image: string;
+  name: string;
+  price: number;
+  rating: number;
+  review_count: number;
+  tour_id: number;
+  type: string;
+}
+
+export interface DestinationDetail {
+  destination_id: string;
+  destination_name: string;
+  destination_image: string;
+  tours: DestinationTour[];
+}
+
+export interface BookingRequest {
+  tour_id: number;
+  tour_name: string;
+  full_name: string;
+  phone: string;
+  departure_date: string;
 }
 
 // Error handling
@@ -89,7 +159,7 @@ async function fetchApi<T>(
         'Failed to parse response as JSON',
         response.status,
         'PARSE_ERROR',
-        responseText // Include the raw response for debugging
+        responseText
       );
     }
 
@@ -129,5 +199,28 @@ async function fetchApi<T>(
 export const api = {
   homepage: {
     getData: () => fetchApi<ApiResponse<HomepageData>>('/homepage'),
+  },
+  posts: {
+    getAll: (page = 1, pageSize = 10) => 
+      fetchApi<ApiResponse<PostsResponse>>(`/posts?page=${page}&page_size=${pageSize}&type=general`),
+  },
+  tours: {
+    getDetail: (tourId: number) => 
+      fetchApi<ApiResponse<TourDetail>>(`/tour/detail?tour_id=${tourId}`),
+  },
+  booking: {
+    submit: (data: BookingRequest) => 
+      fetchApi<ApiResponse<any>>('/booking/submit', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+  },
+  search: {
+    destinations: (query: string) =>
+      fetchApi<ApiResponse<SearchResult[]>>(`/search?query=${encodeURIComponent(query)}`),
+  },
+  destination: {
+    getTours: (destinationId: string | number) =>
+      fetchApi<ApiResponse<DestinationDetail>>(`/destination/tours?destination_id=${destinationId}`),
   },
 };

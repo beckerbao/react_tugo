@@ -9,11 +9,22 @@
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#8B5CF6"
+      "resizeMode": "cover"
     },
     "ios": {
       "supportsTablet": true
+    },
+    "android": {
+      "package": "com.tugo.travel.vn",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#8B5CF6"
+      },
+      "permissions": [
+        "CAMERA",
+        "NOTIFICATIONS"
+      ]
     },
     "web": {
       "bundler": "metro",

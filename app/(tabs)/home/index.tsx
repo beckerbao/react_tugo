@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Image,
   TouchableOpacity,
-  Platform,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search } from 'lucide-react-native';
@@ -18,6 +17,8 @@ import { api } from '@/services/api';
 import { useApi } from '@/hooks/useApi';
 import LoadingView from '@/components/LoadingView';
 import ErrorView from '@/components/ErrorView';
+import { formatPrice } from '@/utils/format';
+import { styles } from '@/styles/home';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -70,8 +71,9 @@ export default function HomeScreen() {
     router.push(`/home/tour?id=${tour.tour_id}`);
   };
 
-  const handleDestinationPress = (destination: string) => {
-    router.push(`/home/destination?destination=${destination.toLowerCase()}`);
+  const handleDestinationPress = (destination: any) => {
+    console.log('Destination pressed:', destination); // Add this for debugging
+    router.push(`/home/destination?destination_id=${destination.destination_id}`);
   };
 
   const handleCollect = (code: string, e: any) => {
@@ -93,6 +95,20 @@ export default function HomeScreen() {
   };
 
   const data = homepageData?.data;
+  const tours = data?.popular_tours || [];
+
+  // Create pairs of tours for the grid
+  const tourPairs = [];
+  for (let i = 0; i < tours.length; i += 2) {
+    tourPairs.push(tours.slice(i, i + 2));
+  }
+
+  // Create pairs of destinations for the grid
+  const destinations = data?.popular_destinations || [];
+  const destinationPairs = [];
+  for (let i = 0; i < destinations.length; i += 2) {
+    destinationPairs.push(destinations.slice(i, i + 2));
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -122,44 +138,55 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         <Text style={styles.sectionTitle}>Các tour HOT</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.toursContainer}>
-          {(data?.popular_tours || []).map((tour, index) => (
-            <TouchableOpacity 
-              key={`tour-${index}`}
-              style={styles.tourCard}
-              onPress={() => handleTourPress(tour)}
-            >
-              <Image source={{ uri: tour.image }} style={styles.tourImage} />
-              <View style={styles.tourContent}>
-                <Text style={styles.tourTitle}>{tour.name}</Text>
-                <Text style={styles.tourInfo}>
-                  {tour.duration} · {tour.type}
-                </Text>
-                <View style={styles.tourFooter}>
-                  <View style={styles.ratingContainer}>
-                    <Text style={styles.rating}>★ {tour.rating}</Text>
-                    <Text style={styles.reviews}>({tour.review_count} reviews)</Text>
+        <View style={styles.toursGrid}>
+          {tourPairs.map((pair, rowIndex) => (
+            <View key={`row-${rowIndex}`} style={styles.tourRow}>
+              {pair.map((tour, colIndex) => (
+                <TouchableOpacity
+                  key={`tour-${rowIndex}-${colIndex}`}
+                  style={styles.tourCard}
+                  onPress={() => handleTourPress(tour)}
+                >
+                  <Image source={{ uri: tour.image }} style={styles.tourImage} />
+                  <View style={styles.tourContent}>
+                    <Text numberOfLines={2} style={styles.tourTitle}>
+                      {tour.name}
+                    </Text>
+                    <Text style={styles.tourInfo}>
+                      {tour.type}
+                    </Text>
+                    <View style={styles.tourFooter}>
+                      <Text style={styles.price}>{formatPrice(tour.price)} đ</Text>
+                    </View>
                   </View>
-                  <Text style={styles.price}>${tour.price}</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
+                </TouchableOpacity>
+              ))}
+              {pair.length === 1 && <View style={styles.tourCard} />}
+            </View>
           ))}
-        </ScrollView>
+        </View>
 
         <Text style={styles.sectionTitle}>Các điểm đến phổ biến</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.destinationsContainer}>
-          {(data?.popular_destinations || []).map((destination, index) => (
-            <TouchableOpacity 
-              key={`destination-${index}`}
-              style={styles.destinationCard}
-              onPress={() => handleDestinationPress(destination.name)}
-            >
-              <Image source={{ uri: destination.image }} style={styles.destinationImage} />
-              <Text style={styles.destinationName}>{destination.name}</Text>
-            </TouchableOpacity>
+        <View style={styles.destinationsGrid}>
+          {destinationPairs.map((pair, rowIndex) => (
+            <View key={`dest-row-${rowIndex}`} style={styles.destinationRow}>
+              {pair.map((destination, colIndex) => (
+                <TouchableOpacity
+                  key={`destination-${rowIndex}-${colIndex}`}
+                  style={styles.destinationCard}
+                  onPress={() => handleDestinationPress(destination)}
+                >
+                  <Image 
+                    source={{ uri: destination.image }} 
+                    style={styles.destinationImage}
+                  />
+                  <Text style={styles.destinationName}>{destination.name}</Text>
+                </TouchableOpacity>
+              ))}
+              {pair.length === 1 && <View style={styles.destinationCard} />}
+            </View>
           ))}
-        </ScrollView>
+        </View>
       </ScrollView>
 
       <PopUpModal
@@ -171,135 +198,3 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  logo: {
-    // Width and height are set dynamically
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 16,
-    marginVertical: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 12,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchPlaceholder: {
-    flex: 1,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#6B7280',
-  },
-  sectionTitle: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 20,
-    color: '#1F2937',
-    marginHorizontal: 16,
-    marginTop: 24,
-    marginBottom: 16,
-  },
-  toursContainer: {
-    paddingLeft: 16,
-  },
-  tourCard: {
-    width: 280,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginRight: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
-      web: {
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-      },
-    }),
-  },
-  tourImage: {
-    width: '100%',
-    height: 160,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-  },
-  tourContent: {
-    padding: 16,
-  },
-  tourTitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 18,
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  tourInfo: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 8,
-  },
-  tourFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  rating: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 14,
-    color: '#1F2937',
-    marginRight: 4,
-  },
-  reviews: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  price: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 18,
-    color: '#8B5CF6',
-  },
-  destinationsContainer: {
-    paddingLeft: 16,
-    paddingBottom: 24,
-  },
-  destinationCard: {
-    marginRight: 16,
-    alignItems: 'center',
-  },
-  destinationImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: 8,
-  },
-  destinationName: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#1F2937',
-  },
-});

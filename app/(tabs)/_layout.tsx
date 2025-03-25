@@ -12,7 +12,7 @@ export default function TabLayout() {
         key="home"
         name="home"
         options={{
-          title: 'Home',
+          title: 'Trang chủ',
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />,
@@ -28,7 +28,7 @@ export default function TabLayout() {
         key="search"
         name="search"
         options={{
-          title: 'Search',
+          title: 'Tìm kiếm',
           tabBarIcon: ({ color, size }) => <Search size={size} color={color} />,
         }}
       />,
@@ -47,7 +47,7 @@ export default function TabLayout() {
         key="profile"
         name="profile"
         options={{
-          title: isAuthenticated ? 'Profile' : 'Login',
+          title: isAuthenticated ? 'Tài khoản' : 'Đăng nhập',
           tabBarIcon: ({ color, size }) => 
             isAuthenticated ? <User size={size} color={color} /> : <LogIn size={size} color={color} />,
           href: isAuthenticated ? '/profile' : '/login',

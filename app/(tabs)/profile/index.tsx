@@ -9,7 +9,7 @@ import { useProfile } from '@/hooks/useProfile';
 const menuItems = [
   {
     id: 'edit-profile',
-    title: 'Edit Profile',
+    title: 'Cập nhật',
     icon: UserCircle,
     color: '#8B5CF6',
   },
@@ -33,7 +33,7 @@ const menuItems = [
   // },
   {
     id: 'logout',
-    title: 'Logout',
+    title: 'Thoát',
     icon: LogOut,
     color: '#EF4444',
   },
@@ -67,7 +67,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile</Text>
+        <Text style={styles.headerTitle}>Tài khoản</Text>
         <NotificationBell />
       </View>
 

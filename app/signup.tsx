@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/services/supabase';
+import { styles } from '@/styles/auth';
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -51,52 +52,52 @@ export default function SignUpScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Sign Up</Text>
+        <Text style={styles.headerTitle}>Đăng ký</Text>
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.welcomeText}>Create Account</Text>
+        <Text style={styles.welcomeText}>Tạo tài khoản</Text>
 
         <View style={styles.form}>
           {error ? (
             <Text style={styles.errorText}>{error}</Text>
           ) : null}
 
-          <Text style={styles.label}>Full Name</Text>
+          <Text style={styles.label}>Họ và tên</Text>
           <TextInput
             style={styles.input}
             value={fullName}
             onChangeText={setFullName}
-            placeholder="Enter your full name"
+            placeholder="Nhập họ và tên"
             autoCapitalize="words"
           />
 
-          <Text style={styles.label}>Phone Number</Text>
+          <Text style={styles.label}>Số điện thoại</Text>
           <TextInput
             style={styles.input}
             value={phoneNumber}
             onChangeText={setPhoneNumber}
-            placeholder="Enter your phone number"
+            placeholder="Nhập số điện thoại"
             keyboardType="phone-pad"
           />
 
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>Địa chỉ email</Text>
           <TextInput
             style={styles.input}
             value={email}
             onChangeText={setEmail}
-            placeholder="Enter your email"
+            placeholder="Nhập địa chỉ email"
             keyboardType="email-address"
             autoCapitalize="none"
             autoComplete="email"
           />
 
-          <Text style={styles.label}>Password</Text>
+          <Text style={styles.label}>Mật khẩu</Text>
           <TextInput
             style={styles.input}
             value={password}
             onChangeText={setPassword}
-            placeholder="Enter your password"
+            placeholder="Nhập mật khẩu"
             secureTextEntry
           />
 
@@ -111,7 +112,7 @@ export default function SignUpScreen() {
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.signUpButtonText}>Sign Up</Text>
+              <Text style={styles.signUpButtonText}>Đăng ký ngay</Text>
             )}
           </TouchableOpacity>
 
@@ -119,92 +120,10 @@ export default function SignUpScreen() {
             style={styles.loginButton}
             onPress={() => router.push('/login')}
           >
-            <Text style={styles.loginButtonText}>Already have an account? Login</Text>
+            <Text style={styles.loginButtonText}>Bạn đã có tài khoản? Hãy đăng nhập</Text>
           </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  headerTitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 18,
-    color: '#1F2937',
-  },
-  content: {
-    flex: 1,
-    padding: 24,
-  },
-  welcomeText: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 24,
-    color: '#1F2937',
-    marginBottom: 32,
-    textAlign: 'center',
-  },
-  form: {
-    gap: 16,
-  },
-  label: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 8,
-  },
-  input: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 16,
-    color: '#1F2937',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: '#FFFFFF',
-  },
-  signUpButton: {
-    backgroundColor: '#8B5CF6',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  signUpButtonDisabled: {
-    backgroundColor: '#E5E7EB',
-  },
-  signUpButtonText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    color: '#FFFFFF',
-  },
-  loginButton: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  loginButtonText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#8B5CF6',
-  },
-  errorText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#EF4444',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-});

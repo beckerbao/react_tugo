@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useAuth } from '@/hooks/useAuth';
+import { styles } from '@/styles/auth';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -64,41 +65,41 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Login</Text>
+        <Text style={styles.headerTitle}>Đăng nhập</Text>
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.welcomeText}>Welcome Back!</Text>
+        <Text style={styles.welcomeText}>Xin chào!</Text>
 
         <View style={styles.form}>
           {error ? (
             <Text style={styles.errorText}>{error}</Text>
           ) : null}
 
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>Địa chỉ email</Text>
           <TextInput
             style={styles.input}
             value={email}
             onChangeText={setEmail}
-            placeholder="Enter your email"
+            placeholder="Nhập email của bạn nhé"
             keyboardType="email-address"
             autoCapitalize="none"
             autoComplete="email"
           />
 
-          <Text style={styles.label}>Password</Text>
+          <Text style={styles.label}>Mật khẩu</Text>
           <TextInput
             style={styles.input}
             value={password}
             onChangeText={setPassword}
-            placeholder="Enter your password"
+            placeholder="Nhập mật khẩu"
             secureTextEntry
           />
 
           <TouchableOpacity 
             style={[
-              styles.loginButton,
-              (!email || !password || loading) && styles.loginButtonDisabled
+              styles.signUpButton,
+              (!email || !password || loading) && styles.signUpButtonDisabled
             ]}
             onPress={handleLogin}
             disabled={!email || !password || loading}
@@ -106,22 +107,22 @@ export default function LoginScreen() {
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.loginButtonText}>Login</Text>
+              <Text style={styles.signUpButtonText}>Đăng nhập</Text>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={styles.signUpButton}
+            style={styles.loginButton}
             onPress={handleSignUp}
           >
-            <Text style={styles.signUpButtonText}>
-              Don't have an account? Sign Up
+            <Text style={styles.loginButtonText}>
+              Bạn chưa có tài khoản? Hãy đăng ký nhé
             </Text>
           </TouchableOpacity>
 
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
+            <Text style={styles.dividerText}>hoặc</Text>
             <View style={styles.dividerLine} />
           </View>
 
@@ -139,124 +140,10 @@ export default function LoginScreen() {
             style={styles.guestButton}
             onPress={handleContinueAsGuest}
           >
-            <Text style={styles.guestButtonText}>Continue as Guest</Text>
+            <Text style={styles.guestButtonText}>Tiếp tục mà không cần đăng ký</Text>
           </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  headerTitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 18,
-    color: '#1F2937',
-  },
-  content: {
-    flex: 1,
-    padding: 24,
-  },
-  welcomeText: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 24,
-    color: '#1F2937',
-    marginBottom: 32,
-    textAlign: 'center',
-  },
-  form: {
-    gap: 16,
-  },
-  label: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 8,
-  },
-  input: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 16,
-    color: '#1F2937',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: '#FFFFFF',
-  },
-  loginButton: {
-    backgroundColor: '#8B5CF6',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  loginButtonDisabled: {
-    backgroundColor: '#E5E7EB',
-  },
-  loginButtonText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    color: '#FFFFFF',
-  },
-  signUpButton: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  signUpButtonText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#8B5CF6',
-  },
-  errorText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#EF4444',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E5E7EB',
-  },
-  dividerText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#6B7280',
-    marginHorizontal: 16,
-  },
-  appleButton: {
-    height: 50,
-    width: '100%',
-    marginBottom: 16,
-  },
-  guestButton: {
-    backgroundColor: '#F3F4F6',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  guestButtonText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    color: '#6B7280',
-  },
-});

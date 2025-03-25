@@ -65,7 +65,7 @@ export default function EditProfileScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
           <ArrowLeft size={24} color="#8B5CF6" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Profile</Text>
+        <Text style={styles.headerTitle}>Cập nhật tài khoản</Text>
         <View style={styles.headerButton} />
       </View>
 
@@ -88,7 +88,7 @@ export default function EditProfileScreen() {
 
         <View style={styles.form}>
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Full Name</Text>
+            <Text style={styles.label}>Họ và tên</Text>
             <TextInput
               style={styles.input}
               value={formData.full_name}
@@ -98,7 +98,7 @@ export default function EditProfileScreen() {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Phone Number</Text>
+            <Text style={styles.label}>Số điện thoại</Text>
             <TextInput
               style={styles.input}
               value={formData.phone_number}

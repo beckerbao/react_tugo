@@ -1,12 +1,14 @@
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, MapPin, Clock, Users } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Clock } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import NotificationBell from '@/components/NotificationBell';
 import { useEffect } from 'react';
 import { useApi } from '@/hooks/useApi';
 import { api } from '@/services/api';
 import ErrorView from '@/components/ErrorView';
+import { formatPrice } from '@/utils/format';
+import { styles } from '@/styles/tour';
 
 const API_BASE_URL = 'https://api.review.tugo.com.vn';
 
@@ -84,6 +86,12 @@ export default function TourScreen() {
 
   const tour = tourData.data;
 
+  // Create pairs of photos for the grid
+  const photoPairs = [];
+  for (let i = 0; i < tour.photo_gallery.length; i += 2) {
+    photoPairs.push(tour.photo_gallery.slice(i, i + 2));
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -117,7 +125,7 @@ export default function TourScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Highlights</Text>
+            <Text style={styles.sectionTitle}>Điểm nổi bật</Text>
             {tour.highlights.map((highlight, index) => (
               <View key={index} style={styles.highlightItem}>
                 <Text style={styles.highlightTitle}>{highlight.title}</Text>
@@ -129,7 +137,7 @@ export default function TourScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Itinerary</Text>
+            <Text style={styles.sectionTitle}>Chương trình</Text>
             {tour.itinerary.map((item, index) => (
               <View key={index} style={styles.itineraryItem}>
                 <Text style={styles.itineraryDay}>Day {item.day}</Text>
@@ -142,7 +150,7 @@ export default function TourScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>What's Included</Text>
+            <Text style={styles.sectionTitle}>Đã bao gồm</Text>
             {tour.whats_included.map((item, index) => (
               <View key={index} style={styles.includedItem}>
                 <Text style={styles.includedTitle}>{item.title}</Text>
@@ -154,22 +162,23 @@ export default function TourScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Photo Gallery</Text>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              style={styles.galleryContainer}
-            >
-              {tour.photo_gallery.map((photo, index) => (
-                <View key={index} style={styles.galleryItem}>
-                  <Image 
-                    source={{ uri: `${API_BASE_URL}${photo.image}` }}
-                    style={styles.galleryImage}
-                  />
-                  <Text style={styles.galleryName}>{photo.name}</Text>
+            <Text style={styles.sectionTitle}>Hình ảnh</Text>
+            <View style={styles.galleryGrid}>
+              {photoPairs.map((pair, rowIndex) => (
+                <View key={rowIndex} style={styles.galleryRow}>
+                  {pair.map((photo, colIndex) => (
+                    <View key={colIndex} style={styles.galleryItem}>
+                      <Image
+                        source={{ uri: `${API_BASE_URL}${photo.image}` }}
+                        style={styles.galleryImage}
+                      />
+                      <Text style={styles.galleryName}>{photo.name}</Text>
+                    </View>
+                  ))}
+                  {pair.length === 1 && <View style={styles.galleryItem} />}
                 </View>
               ))}
-            </ScrollView>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -177,7 +186,7 @@ export default function TourScreen() {
       <View style={styles.footer}>
         <View style={styles.priceContainer}>
           <Text style={styles.priceLabel}>Price per person</Text>
-          <Text style={styles.price}>${tour.price}</Text>
+          <Text style={styles.price}>{formatPrice(tour.price)} đ</Text>
         </View>
         <TouchableOpacity style={styles.bookButton} onPress={handleBookNow}>
           <Text style={styles.bookButtonText}>Book Now</Text>
@@ -186,193 +195,3 @@ export default function TourScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  headerButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 18,
-    color: '#1F2937',
-    flex: 1,
-    textAlign: 'center',
-    marginHorizontal: 16,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    flex: 1,
-  },
-  heroContainer: {
-    position: 'relative',
-    height: 300,
-  },
-  heroImage: {
-    width: '100%',
-    height: '100%',
-  },
-  detailsContainer: {
-    padding: 16,
-  },
-  title: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 24,
-    color: '#1F2937',
-    marginBottom: 16,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginBottom: 24,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#E5E7EB',
-    gap: 24,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#6B7280',
-    marginLeft: 8,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 20,
-    color: '#1F2937',
-    marginBottom: 16,
-  },
-  highlightItem: {
-    marginBottom: 16,
-  },
-  highlightTitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  highlightDescription: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 20,
-  },
-  itineraryItem: {
-    marginBottom: 16,
-    padding: 16,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 8,
-  },
-  itineraryDay: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 14,
-    color: '#8B5CF6',
-    marginBottom: 4,
-  },
-  itineraryTitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  itineraryDescription: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 20,
-  },
-  includedItem: {
-    marginBottom: 16,
-  },
-  includedTitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  includedDescription: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 20,
-  },
-  galleryContainer: {
-    marginHorizontal: -16,
-    paddingHorizontal: 16,
-  },
-  galleryItem: {
-    marginRight: 16,
-    alignItems: 'center',
-  },
-  galleryImage: {
-    width: 200,
-    height: 150,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  galleryName: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  footer: {
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  priceContainer: {
-    flex: 1,
-    marginRight: 16,
-  },
-  priceLabel: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  price: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 24,
-    color: '#8B5CF6',
-  },
-  bookButton: {
-    backgroundColor: '#8B5CF6',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 12,
-  },
-  bookButtonText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    color: '#FFFFFF',
-  },
-});
