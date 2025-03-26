@@ -42,12 +42,12 @@ export default function PopUpModal({
           )}
           
           <Text style={styles.title}>
-            {isBooking ? 'Booking Confirmed!' : 'Your Voucher Code'}
+            {isBooking ? 'Xác nhận thông tin!' : 'Your Voucher Code'}
           </Text>
           
           {isBooking ? (
             <Text style={styles.message}>
-              We have received your booking. We will contact you soon.
+              Tugo đã nhận được thông tin. Chúng tôi sẽ liên hệ bạn sớm nhất
             </Text>
           ) : (
             <Text style={styles.code}>{voucherCode || 'BAL2024FEB'}</Text>
