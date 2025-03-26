@@ -15,9 +15,15 @@ export default function HomeLayout() {
         name="tour"
         options={{
           headerShown: false,
+          animation: 'slide_from_right',
+        }}
+      />
+      <Stack.Screen
+        name="booking"
+        options={{
+          headerShown: false,
           animation: 'slide_from_bottom',
           presentation: 'modal',
-          tabBarStyle: { display: 'none' },
         }}
       />
       <Stack.Screen

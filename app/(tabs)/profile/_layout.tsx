@@ -11,6 +11,12 @@ export default function ProfileLayout() {
           animation: 'slide_from_bottom',
         }}
       />
+      <Stack.Screen 
+        name="history"
+        options={{
+          animation: 'slide_from_right',
+        }}
+      />
     </Stack>
   );
 }
