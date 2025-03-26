@@ -105,7 +105,7 @@ export default function TourScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.heroContainer}>
           <Image 
-            source={{ uri: `${API_BASE_URL}${tour.image}` }} 
+            source={{ uri: `${tour.image}` }} 
             style={styles.heroImage} 
           />
         </View>
@@ -140,7 +140,7 @@ export default function TourScreen() {
             <Text style={styles.sectionTitle}>Chương trình</Text>
             {tour.itinerary.map((item, index) => (
               <View key={index} style={styles.itineraryItem}>
-                <Text style={styles.itineraryDay}>Day {item.day}</Text>
+                <Text style={styles.itineraryDay}>{item.day}</Text>
                 <Text style={styles.itineraryTitle}>{item.title}</Text>
                 <Text style={styles.itineraryDescription}>
                   {item.description}
@@ -169,10 +169,10 @@ export default function TourScreen() {
                   {pair.map((photo, colIndex) => (
                     <View key={colIndex} style={styles.galleryItem}>
                       <Image
-                        source={{ uri: `${API_BASE_URL}${photo.image}` }}
+                        source={{ uri: `${photo.image}` }}
                         style={styles.galleryImage}
                       />
-                      <Text style={styles.galleryName}>{photo.name}</Text>
+                      {/* <Text style={styles.galleryName}>{photo.name}</Text> */}
                     </View>
                   ))}
                   {pair.length === 1 && <View style={styles.galleryItem} />}

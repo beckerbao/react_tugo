@@ -65,9 +65,10 @@ export const styles = StyleSheet.create({
   },
   tourInfo: {
     padding: 16,
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'space-between',
     alignItems: 'center',
+    width: '100%',
   },
   tourTitle: {
     fontFamily: 'Inter-SemiBold',
@@ -80,8 +81,8 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
   },
-  priceContainer: {
-    alignItems: 'flex-end',
+  priceContainer: {    
+    alignSelf: 'flex-end',
   },
   price: {
     fontFamily: 'Inter-Bold',

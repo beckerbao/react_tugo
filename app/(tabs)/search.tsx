@@ -53,7 +53,7 @@ export default function SearchScreen() {
     if (imagePath.startsWith('http')) {
       return imagePath;
     }
-    return `${API_BASE_URL}${imagePath}`;
+    return `${imagePath}`;
   };
 
   return (

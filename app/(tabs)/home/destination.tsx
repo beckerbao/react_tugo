@@ -90,7 +90,7 @@ export default function DestinationScreen() {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <Image 
-          source={{ uri: `${API_BASE_URL}${destination.destination_image}` }} 
+          source={{ uri: `${destination.destination_image}` }} 
           style={styles.heroImage} 
         />
         
@@ -102,7 +102,7 @@ export default function DestinationScreen() {
               onPress={() => handleTourPress(tour.tour_id)}
             >
               <Image 
-                source={{ uri: `${API_BASE_URL}${tour.image}` }} 
+                source={{ uri: `${tour.image}` }} 
                 style={styles.tourImage} 
               />
               <View style={styles.tourInfo}>

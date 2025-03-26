@@ -12,21 +12,46 @@ export function useAuth() {
   const { expoPushToken } = usePushNotifications();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
+    // Initialize auth state
+    initializeAuth();
 
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      console.log('Auth state changed:', event);
+      setSession(currentSession);
       setIsGuest(false);
       
       // Update push token when auth state changes
-      if (session?.user && expoPushToken) {
-        updatePushToken(session.user.id, expoPushToken);
+      if (currentSession?.user && expoPushToken) {
+        await updatePushToken(currentSession.user.id, expoPushToken);
       }
     });
+
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [expoPushToken]);
+
+  const initializeAuth = async () => {
+    try {
+      // Get initial session
+      const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Error getting session:', error);
+        // Clear any invalid session data
+        await supabase.auth.signOut();
+        setSession(null);
+      } else {
+        setSession(initialSession);
+      }
+    } catch (err) {
+      console.error('Error initializing auth:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const updatePushToken = async (userId: string, token: string | null) => {
     try {
@@ -55,12 +80,21 @@ export function useAuth() {
 
   const signIn = async (email: string, password: string) => {
     setIsGuest(false);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    return { error };
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      // Update session immediately after successful sign in
+      setSession(data.session);
+      return { error: null };
+    } catch (error) {
+      console.error('Sign in error:', error);
+      return { error };
+    }
   };
 
   const signInWithApple = async () => {
@@ -104,13 +138,14 @@ export function useAuth() {
 
   const signOut = async () => {
     try {
-      // Only attempt to clear push token if there's an active session
+      // Clear push token before signing out
       if (session?.user) {
         await updatePushToken(session.user.id, null);
       }
 
-      // Always attempt to sign out, regardless of session state
-      await supabase.auth.signOut();
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       
       // Clear local state
       setSession(null);
@@ -122,6 +157,30 @@ export function useAuth() {
       // Still clear local state even if the API call fails
       setSession(null);
       setIsGuest(false);
+      return { error };
+    }
+  };
+
+  const deleteAccount = async () => {
+    try {
+      if (!session?.user) {
+        throw new Error('No authenticated user');
+      }
+
+      // Clear push token before deleting account
+      await updatePushToken(session.user.id, null);
+
+      // Call the RPC function to delete the user
+      const { error: deleteError } = await supabase.rpc('delete_user');
+      if (deleteError) throw deleteError;
+
+      // Clear local state
+      setSession(null);
+      setIsGuest(false);
+
+      return { error: null };
+    } catch (error) {
+      console.error('Error deleting account:', error);
       return { error };
     }
   };
@@ -139,6 +198,7 @@ export function useAuth() {
     signIn,
     signInWithApple,
     signOut,
+    deleteAccount,
     continueAsGuest,
   };
 }
