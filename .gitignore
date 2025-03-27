@@ -36,3 +36,5 @@ app/(tabs)/home/booking.tsx
 .env
 tugo-1190-28b54ed0330a.json
 google-service-account.json
+android
+ios
