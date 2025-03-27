@@ -10,3 +10,5 @@ echo "sdk.dir=/Users/minhbaonguyen/Library/Android/sdk" > android/local.properti
 
 cd android && ./gradlew clean && cd ..
 npx expo run:android
+
+NODE_ENV=production eas build --platform android --profile local --local
