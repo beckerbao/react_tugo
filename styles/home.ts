@@ -86,7 +86,7 @@ export const styles = StyleSheet.create({
   },
   tourTitle: {
     fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
+    fontSize: 14,
     color: '#1F2937',
     marginBottom: 4,
     height: 44, // Fixed height for 2 lines
