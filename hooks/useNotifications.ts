@@ -19,8 +19,8 @@ export function useNotifications() {
         {
           id: '1',
           user_id: 'guest',
-          title: 'Welcome to Travel App',
-          message: 'Start exploring amazing destinations around the world.',
+          title: 'Chào mừng bạn đến với Tugo Travel',
+          message: 'Hãy bắt đầu khám phá những hành trình Tour chất lượng cùng Tugo',
           type: 'system',
           read: false,
           created_at: new Date().toISOString(),

@@ -3,6 +3,8 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { supabase } from '@/services/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
 
 // Configure notification handler with platform-specific settings
 if (Platform.OS !== 'web') {
@@ -16,73 +18,128 @@ if (Platform.OS !== 'web') {
   });
 }
 
+const DEVICE_TOKEN_KEY = '@device_token';
+const LAST_NOTIFICATION_ID = '@last_notification_id';
+
+let notificationListenerInstance: Notifications.Subscription | null = null;
+let responseListenerInstance: Notifications.Subscription | null = null;
+
 export function usePushNotifications() {
   const [expoPushToken, setExpoPushToken] = useState<string | undefined>();
   const [notification, setNotification] = useState<Notifications.Notification>();
   const [showPermissionModal, setShowPermissionModal] = useState(false);
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const isRegistering = useRef(false);
+  const isMounted = useRef(true);
+  const lastNotificationId = useRef<string | null>(null);
+  const isInitialNotificationHandled = useRef(false);
 
   useEffect(() => {
+    isMounted.current = true;
+    
     if (Platform.OS === 'web') {
       return;
     }
 
-    checkPermissionAndToken();
+    const initializeNotifications = async () => {
+      try {
+        // Load last notification ID
+        lastNotificationId.current = await AsyncStorage.getItem(LAST_NOTIFICATION_ID);
+        
+        await checkPermissionAndToken();
 
-    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-      setNotification(notification);
-    });
+        // Only set up listeners if they don't exist
+        if (!notificationListenerInstance) {
+          notificationListenerInstance = Notifications.addNotificationReceivedListener(
+            notification => {
+              const notificationId = notification.request.identifier;
+              
+              // Prevent duplicate notifications
+              if (notificationId === lastNotificationId.current) {
+                return;
+              }
 
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      const data = response.notification.request.content.data;
-      handleNotificationResponse(data);
-    });
+              if (isMounted.current) {
+                setNotification(notification);
+                lastNotificationId.current = notificationId;
+                AsyncStorage.setItem(LAST_NOTIFICATION_ID, notificationId);
+              }
+            }
+          );
+        }
+
+        if (!responseListenerInstance) {
+          responseListenerInstance = Notifications.addNotificationResponseReceivedListener(
+            response => {
+              if (isMounted.current) {
+                handleNotificationTap(response, false);
+              }
+            }
+          );
+        }
+
+        // Check for initial notification only once
+        if (!isInitialNotificationHandled.current) {
+          isInitialNotificationHandled.current = true;
+          const initialNotification = await Notifications.getLastNotificationResponseAsync();
+          if (initialNotification && isMounted.current) {
+            handleNotificationTap(initialNotification, true);
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing notifications:', error);
+      }
+    };
+
+    initializeNotifications();
 
     return () => {
-      if (Platform.OS !== 'web') {
-        if (notificationListener.current) {
-          Notifications.removeNotificationSubscription(notificationListener.current);
-        }
-        if (responseListener.current) {
-          Notifications.removeNotificationSubscription(responseListener.current);
-        }
-      }
+      isMounted.current = false;
     };
   }, []);
 
   const checkPermissionAndToken = async () => {
     if (!Device.isDevice) {
-      console.log('Must use physical device for Push Notifications');
       return;
     }
 
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    
-    if (existingStatus === 'granted') {
-      // Permission already granted, get token
-      const tokenData = await getToken();
-      setExpoPushToken(tokenData);
-    } else if (existingStatus === 'undetermined') {
-      // Show custom permission modal
-      setShowPermissionModal(true);
+    try {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      
+      if (existingStatus === 'granted') {
+        const tokenData = await getToken();
+        if (tokenData && isMounted.current) {
+          setExpoPushToken(tokenData);
+          await registerDevice(tokenData);
+        }
+      } else if (existingStatus === 'undetermined') {
+        setShowPermissionModal(true);
+      }
+    } catch (error) {
+      console.error('Error checking permissions:', error);
     }
   };
 
   const handleAllowPermission = async () => {
-    setShowPermissionModal(false);
-    const { status } = await Notifications.requestPermissionsAsync({
-      ios: {
-        allowAlert: true,
-        allowBadge: true,
-        allowSound: true,
-        allowAnnouncements: true,
-      },
-    });
+    try {
+      setShowPermissionModal(false);
+      const { status } = await Notifications.requestPermissionsAsync({
+        ios: {
+          allowAlert: true,
+          allowBadge: true,
+          allowSound: true,
+          allowAnnouncements: true,
+        },
+      });
 
-    if (status === 'granted') {
-      const tokenData = await getToken();
-      setExpoPushToken(tokenData);
+      if (status === 'granted') {
+        const tokenData = await getToken();
+        if (tokenData && isMounted.current) {
+          setExpoPushToken(tokenData);
+          await registerDevice(tokenData);
+        }
+      }
+    } catch (error) {
+      console.error('Error requesting permissions:', error);
     }
   };
 
@@ -95,11 +152,6 @@ export function usePushNotifications() {
       const tokenData = await Notifications.getExpoPushTokenAsync({
         projectId: '30a29066-52b8-4976-80bc-eb7ca759038f',
       });
-      
-      console.log('\n=== Expo Push Token ===');
-      console.log(tokenData.data);
-      console.log('=====================\n');
-      
       return tokenData.data;
     } catch (err) {
       console.error('Failed to get push token:', err);
@@ -107,17 +159,78 @@ export function usePushNotifications() {
     }
   };
 
-  const handleNotificationResponse = (data: any) => {
-    if (data.type === 'offer') {
-      // Navigate to offer details
-    } else if (data.type === 'booking') {
-      // Navigate to booking details
+  const registerDevice = async (token: string) => {
+    if (isRegistering.current || !isMounted.current) {
+      return;
+    }
+
+    try {
+      isRegistering.current = true;
+
+      const storedToken = await AsyncStorage.getItem(DEVICE_TOKEN_KEY);
+      if (storedToken === token) {
+        return;
+      }
+
+      const { data: existingDevice, error: fetchError } = await supabase
+        .from('anonymous_devices')
+        .select('id')
+        .eq('push_token', token)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      if (!existingDevice) {
+        const { error: insertError } = await supabase
+          .from('anonymous_devices')
+          .insert({ push_token: token });
+
+        if (insertError) throw insertError;
+
+        await AsyncStorage.setItem(DEVICE_TOKEN_KEY, token);
+      }
+    } catch (error) {
+      console.error('Error registering device:', error);
+    } finally {
+      isRegistering.current = false;
+    }
+  };
+
+  const handleNotificationTap = async (response: Notifications.NotificationResponse, isInitial: boolean) => {
+    try {
+      const data = response.notification.request.content.data;
+
+      if (!data || !data.type || !isMounted.current) {
+        return;
+      }
+
+      // Add delay only for initial notification
+      if (isInitial) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      switch (data.type) {
+        case 'offer':
+          if (data.offerId) {
+            router.push(`/home/voucher?id=${data.offerId}`);
+          }
+          break;
+        case 'booking':
+          if (data.bookingId) {
+            router.push(`/profile/history`);
+          }
+          break;
+        case 'system':
+          router.push('/notifications');
+          break;
+      }
+    } catch (error) {
+      console.error('Error handling notification tap:', error);
     }
   };
 
   const sendPushNotification = async (expoPushToken: string, title: string, body: string, data = {}) => {
     if (Platform.OS === 'web') {
-      console.log('Push notifications are not supported on web');
       return;
     }
 
@@ -141,15 +254,23 @@ export function usePushNotifications() {
       }),
     };
 
-    await fetch('https://exp.host/--/api/v2/push/send', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Accept-encoding': 'gzip, deflate',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(message),
-    });
+    try {
+      const response = await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Accept-encoding': 'gzip, deflate',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(message),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send push notification');
+      }
+    } catch (error) {
+      console.error('Error sending push notification:', error);
+    }
   };
 
   return {
