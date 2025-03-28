@@ -149,7 +149,7 @@ export default function HomeScreen() {
                 >
                   <Image source={{ uri: tour.image }} style={styles.tourImage} />
                   <View style={styles.tourContent}>
-                    <Text numberOfLines={2} style={styles.tourTitle}>
+                    <Text style={[styles.tourTitle, { flexWrap: 'wrap', width: '100%' }]} ellipsizeMode="tail" numberOfLines={2}>
                       {tour.name}
                     </Text>
                     <Text style={styles.tourInfo}>
