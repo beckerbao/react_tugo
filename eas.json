@@ -6,21 +6,33 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
+      }
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
       }      
     },
     "production": {
-      "autoIncrement": true      
+      "autoIncrement": true,
+      "ios": {
+        "simulator": false
+      }    
     },
     "local": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },      
+      "ios": {
+        "simulator": false
       },
       "env": {
         "NODE_ENV": "production"
@@ -32,6 +44,10 @@
       "android": {
         "serviceAccountKeyPath": "tugo-1190-28b54ed0330a.json",
         "track": "internal"
+      },
+      "ios": {
+        "appleId": "beckerbao29@gmail.com",
+        "ascAppId": "your-asc-app-id"
       }
     }
   }

@@ -51,7 +51,9 @@ export function usePushNotifications() {
         if (!notificationListenerInstance) {
           notificationListenerInstance = Notifications.addNotificationReceivedListener(
             notification => {
+              console.log('Notification Received:', notification);
               const notificationId = notification.request.identifier;
+              console.log('Notification ID:', notificationId);
               
               // Prevent duplicate notifications
               if (notificationId === lastNotificationId.current) {
@@ -70,6 +72,8 @@ export function usePushNotifications() {
         if (!responseListenerInstance) {
           responseListenerInstance = Notifications.addNotificationResponseReceivedListener(
             response => {
+              console.log('Notification Response Received:', response);
+              console.log('Action Identifier:', response.actionIdentifier);
               if (isMounted.current) {
                 handleNotificationTap(response, false);
               }
@@ -81,8 +85,18 @@ export function usePushNotifications() {
         if (!isInitialNotificationHandled.current) {
           isInitialNotificationHandled.current = true;
           const initialNotification = await Notifications.getLastNotificationResponseAsync();
-          if (initialNotification && isMounted.current) {
+          console.log('Initial Notification Response:', initialNotification);
+          // Chỉ xử lý nếu có response và actionIdentifier là 'default'
+          if (
+            initialNotification &&
+            isMounted.current &&
+            initialNotification.actionIdentifier === 'default'
+          ) {
             handleNotificationTap(initialNotification, true);
+          } else {
+            console.log(
+              'Initial notification response ignored due to actionIdentifier not being default or missing'
+            );
           }
         }
       } catch (error) {
@@ -198,7 +212,17 @@ export function usePushNotifications() {
 
   const handleNotificationTap = async (response: Notifications.NotificationResponse, isInitial: boolean) => {
     try {
+      console.log('handleNotificationTap triggered with response:', response);
+      console.log('actionIdentifier:', response.actionIdentifier);
+
+      // Chỉ xử lý khi người dùng thực sự nhấn vào thông báo
+      if (response.actionIdentifier !== 'default') {
+        console.log('Not a default tap action, ignoring this notification.');
+        return;
+      }
+
       const data = response.notification.request.content.data;
+      console.log('Notification data payload:', data);
 
       if (!data || !data.type || !isMounted.current) {
         return;
@@ -213,15 +237,21 @@ export function usePushNotifications() {
         case 'offer':
           if (data.offerId) {
             router.push(`/home/voucher?id=${data.offerId}`);
+            // Xóa thông tin của notification sau khi xử lý xong
+            await AsyncStorage.removeItem(LAST_NOTIFICATION_ID);
           }
           break;
         case 'booking':
           if (data.bookingId) {
             router.push(`/profile/history`);
+            // Xóa thông tin của notification sau khi xử lý xong
+            await AsyncStorage.removeItem(LAST_NOTIFICATION_ID);
           }
           break;
         case 'system':
           router.push('/notifications');
+          // Xóa thông tin của notification sau khi xử lý xong
+          await AsyncStorage.removeItem(LAST_NOTIFICATION_ID);
           break;
       }
     } catch (error) {
