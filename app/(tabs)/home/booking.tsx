@@ -88,6 +88,7 @@ export default function BookingScreen() {
 
         <View style={styles.section}>
           <Text style={styles.label}>Số điện thoại</Text>
+          <Text style={styles.noticeText}>Chúng tôi sẽ liên hệ lại để tư vấn qua số điện thoại này.</Text>
           <TextInput
             style={styles.input}
             placeholder="Nhập số điện thoại"
