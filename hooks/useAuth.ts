@@ -17,14 +17,23 @@ export function useAuth() {
 
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      console.log('Auth state changed:', event);
+      console.log('Auth state changed:', event, 'Session:', currentSession ? 'Exists' : 'Null');                                                                                               
+      const previousUserId = session?.user?.id; // Capture previous user ID before state update
+      
       setSession(currentSession);
       setIsGuest(false);
       
       // Update push token when auth state changes
       if (currentSession?.user && expoPushToken) {
+        console.log(`Auth Listener: User ${currentSession.user.id} logged in with token ${expoPushToken}. Updating token.`);
         await updatePushToken(currentSession.user.id, expoPushToken);
-      }
+      }else if (!currentSession && previousUserId && expoPushToken) {                                                                                                                         
+        // User just logged out (currentSession is null, but we had a previous user)                                                                                                           
+        // This is a fallback, signOut should ideally handle it first.                                                                                                                         
+        console.log(`Auth Listener: User ${previousUserId} logged out. Attempting to clear token ${expoPushToken} as fallback.`);                                                              
+        // We don't strictly need to await this here if signOut handles it                                                                                                                     
+        updatePushToken(previousUserId, null);                                                                                                                                                 
+      } 
     });
 
     // Cleanup subscription

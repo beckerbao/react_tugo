@@ -12,7 +12,11 @@ cd android && ./gradlew clean && cd ..
 npx expo run:android
 
 NODE_ENV=production eas build --platform android --profile local --local
-======================
+
+======= BUILD CHẠY TRÊN THIẾT BỊ THẬT VỚI EXPO ========
+npx expo run:ios --device
+
+====================== ANDROID ============
 🛠️ Method 1: Debug APK (no EAS, fastest)
 1️⃣ From project root run:
 

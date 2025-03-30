@@ -64,11 +64,14 @@ export const styles = StyleSheet.create({
       color: '#6B7280',
       marginBottom: 4, // Adjusted margin for label
     },
-    noticeText: {
+    noticeText: { 
       fontFamily: 'Inter-Regular',
       fontSize: 12,
       color: '#6B7280', // Same color as label, but smaller font
       marginBottom: 8,
+    },
+    requiredAsterisk: {
+      color: '#EF4444', // Red color
     },
     input: {
       fontFamily: 'Inter-Regular',
