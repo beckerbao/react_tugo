@@ -7,10 +7,11 @@ import { useEffect } from 'react'; // Added useEffect
 import NotificationBell from '@/components/NotificationBell';
 // import PopUpModal from '@/components/PopUpModal';
 import { useAuth } from '@/hooks/useAuth';
-import { useApi } from '@/hooks/useApi'; // Import useApi                                                                                                                                      
-import { api, UserVoucher, UserVouchersResponse } from '@/services/api'; // Import api, UserVoucher, and UserVouchersResponse types  
-import LoadingView from '@/components/LoadingView'; // Assuming you have this                                                                                                                  
-import ErrorView from '@/components/ErrorView'; // Assuming you have this   
+import { useApi } from '@/hooks/useApi'; // Import useApi
+// Import UserVoucher, UserVouchersResponse is no longer needed
+import { api, UserVoucher } from '@/services/api';
+import LoadingView from '@/components/LoadingView'; // Assuming you have this
+import ErrorView from '@/components/ErrorView'; // Assuming you have this
 
 // const voucherList = [
 //   {
@@ -59,9 +60,9 @@ export default function VouchersScreen() {
   const {                                                                                                                                                                                      
     data: voucherData, // Rename data to avoid conflict                                                                                                                                        
     loading,                                                                                                                                                                                   
-    error,                                                                                                                                                                                     
-    execute: fetchVouchers                                                                                                                                                                     
-  } = useApi<UserVouchersResponse>(api.vouchers.getUserVouchers);  
+    error,
+    execute: fetchVouchers
+  } = useApi<UserVoucher[]>(api.vouchers.getUserVouchers); // Expect an array of UserVoucher
 
   // const handleVoucherPress = (id: number) => {
   //   if (!isAuthenticated) {
@@ -167,26 +168,33 @@ export default function VouchersScreen() {
         <NotificationBell />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>                                                                                                                 
-        {/* Use voucherData from the API response */}                                                                                                                                          
-        {voucherData?.vouchers && voucherData.vouchers.length > 0 ? (                                                                                                                          
-          voucherData.vouchers.map((voucher) => (                                                                                                                                              
-            <TouchableOpacity                                                                                                                                                                  
-              key={voucher.id} // Use ID from API data                                                                                                                                         
-              style={styles.voucherCard}                                                                                                                                                       
-              onPress={() => handleVoucherPress(voucher)} // Pass the voucher object                                                                                                           
-            >                                                                                                                                                                                  
-              <View style={styles.voucherInfo}>                                                                                                                                                
-                <Text style={styles.voucherTitle}>{voucher.title}</Text>                                                                                                                       
-                <Text style={styles.voucherDiscount}>{voucher.discount}</Text>                                                                                                                 
-                <View style={styles.validityContainer}>                                                                                                                                        
-                  <Clock size={16} color="#6B7280" />                                                                                                                                          
-                  {/* Use valid_until from API data */}                                                                                                                                        
-                  <Text style={styles.validityText}>Valid until {voucher.valid_until}</Text>                                                                                                   
-                </View>                                                                                                                                                                        
-              </View>                                                                                                                                                                          
-              {/*                                                                                                                                                                              
-                The "Collect" button logic needs rethinking with an API.                                                                                                                       
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Use voucherData directly as it's the array */}
+        {voucherData && voucherData.length > 0 ? (
+          voucherData.map((voucher) => (
+            <TouchableOpacity
+              key={voucher.id} // Use ID from API data
+              // Add opacity style if voucher is expired or used
+              style={[
+                styles.voucherCard,
+                (voucher.status === 'expired' || voucher.usage_status === 'used') && styles.disabledVoucherCard,
+              ]}
+              onPress={() => handleVoucherPress(voucher)} // Pass the voucher object
+              // Disable press if expired or used
+              disabled={voucher.status === 'expired' || voucher.usage_status === 'used'}
+            >
+              <View style={styles.voucherInfo}>
+                {/* Use new field names */}
+                <Text style={styles.voucherTitle}>{voucher.voucher_name}</Text>
+                <Text style={styles.voucherDiscount}>{voucher.term_condition}</Text>
+                <View style={styles.validityContainer}>
+                  <Clock size={16} color="#6B7280" />
+                  {/* Use valid_until from API data and format it */}
+                  <Text style={styles.validityText}>Valid until {new Date(voucher.valid_until).toLocaleDateString()}</Text>
+                </View>
+              </View>
+              {/*
+                The "Collect" button logic needs rethinking with an API.
                 It would require:                                                                                                                                                              
                 1. An API endpoint to mark a voucher as collected for a user.                                                                                                                  
                 2. A separate useApi call or mutation function to call that endpoint.                                                                                                          
@@ -211,12 +219,13 @@ export default function VouchersScreen() {
                 </Text>                                                                                                                                                                        
               </TouchableOpacity> */}                                                                                                                                                          
             </TouchableOpacity>                                                                                                                                                                
-          ))                                                                                                                                                                                   
-        ) : (                                                                                                                                                                                  
-          <View style={styles.emptyStateContainer}>                                                                                                                                            
-             <Text style={styles.emptyStateText}>No vouchers found.</Text>                                                                                                                     
-          </View>                                                                                                                                                                              
-        )}                                                                                                                                                                                     
+          ))
+        ) : (
+          // Show empty state if array is empty or null/undefined
+          <View style={styles.emptyStateContainer}>
+             <Text style={styles.emptyStateText}>No vouchers available.</Text>
+          </View>
+        )}
       </ScrollView>
 
       {/* <PopUpModal
@@ -360,7 +369,12 @@ const styles = StyleSheet.create({
   },                                                                                                                                                                                           
   emptyStateText: {                                                                                                                                                                            
     fontFamily: 'Inter-Regular',                                                                                                                                                               
-    fontSize: 16,                                                                                                                                                                              
-    color: '#6B7280',                                                                                                                                                                          
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  // Style for disabled/expired/used vouchers
+  disabledVoucherCard: {
+    opacity: 0.6,
+    backgroundColor: '#F3F4F6', // Lighter background
   },
 });

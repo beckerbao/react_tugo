@@ -229,25 +229,26 @@ export const api = {
       fetchApi<ApiResponse<DestinationDetail>>(`/destination/tours?destination_id=${destinationId}`),
   },
   // Add the new vouchers endpoint                                                                                                                                                             
-  vouchers: {                                                                                                                                                                                  
-    getUserVouchers: (userId: string) =>                                                                                                                                                       
-      fetchApi<UserVouchersResponse>(`/user-vouchers?user_id=${userId}`), // Assuming wrapper { data: ... }                                                                                    
-  }, 
+  vouchers: {
+    // Update the expected type parameter for fetchApi.
+    // fetchApi returns the `data` field of ApiResponse, which is UserVoucher[] here.
+    getUserVouchers: (userId: string) =>
+      fetchApi<UserVoucher[]>(`/user-vouchers?user_id=${userId}`),
+  },
 };
 
-// Define the structure of a single voucher from the API                                                                                                                                       
-export interface UserVoucher {                                                                                                                                                                 
-  id: number; // Or string, depending on your API                                                                                                                                              
-  title: string;                                                                                                                                                                               
-  discount: string;                                                                                                                                                                            
-  valid_until: string; // Assuming API uses snake_case                                                                                                                                         
-  code: string;                                                                                                                                                                                
-  is_collected?: boolean; // Assuming API provides this status                                                                                                                                 
-  // Add any other fields returned by your API                                                                                                                                                 
-}                                                                                                                                                                                              
-                                                                                                                                                                                               
-// Define the structure for the user-vouchers response                                                                                                                                         
-export interface UserVouchersResponse {                                                                                                                                                        
-  vouchers: UserVoucher[];                                                                                                                                                                     
-  // Add other potential fields like pagination if your API supports it                                                                                                                        
-} 
+// Define the structure of a single voucher from the API based on the new response
+export interface UserVoucher {
+  id: number;
+  voucher_name: string;
+  term_condition: string; // Represents the discount/offer details
+  valid_until: string;
+  code: string;
+  available_for: string;
+  claim_status: 'claimed' | 'not_claimed';
+  status: 'active' | 'expired' | 'used'; // Assuming 'used' might be a status
+  usage_status: 'used' | 'not_used';
+  // Add any other relevant fields from your API if needed
+}
+
+// UserVouchersResponse is no longer needed as the data is directly an array in the ApiResponse
