@@ -2,78 +2,110 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from '
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Clock, LogIn } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+// import { useState } from 'react';
+import { useEffect } from 'react'; // Added useEffect 
 import NotificationBell from '@/components/NotificationBell';
-import PopUpModal from '@/components/PopUpModal';
+// import PopUpModal from '@/components/PopUpModal';
 import { useAuth } from '@/hooks/useAuth';
+import { useApi } from '@/hooks/useApi'; // Import useApi                                                                                                                                      
+import { api, UserVoucher, UserVouchersResponse } from '@/services/api'; // Import api, UserVoucher, and UserVouchersResponse types  
+import LoadingView from '@/components/LoadingView'; // Assuming you have this                                                                                                                  
+import ErrorView from '@/components/ErrorView'; // Assuming you have this   
 
-const voucherList = [
-  {
-    id: 1,
-    title: 'Summer Sale',
-    discount: '20% off on selected tours',
-    validUntil: 'Aug 31, 2024',
-    isCollected: false,
-    code: 'SUMMER2024',
-  },
-  {
-    id: 2,
-    title: 'Early Bird Discount',
-    discount: '15% off on advance bookings',
-    validUntil: 'Jul 15, 2024',
-    isCollected: true,
-    code: 'EARLY2024',
-  },
-  {
-    id: 3,
-    title: 'Weekend Special',
-    discount: '10% off on weekend tours',
-    validUntil: 'Sep 30, 2024',
-    isCollected: false,
-    code: 'WEEKEND2024',
-  },
-  {
-    id: 4,
-    title: 'First Time User',
-    discount: '25% off on your first booking',
-    validUntil: 'Valid for 30 days',
-    isCollected: false,
-    code: 'FIRST2024',
-  },
-];
+// const voucherList = [
+//   {
+//     id: 1,
+//     title: 'Summer Sale',
+//     discount: '20% off on selected tours',
+//     validUntil: 'Aug 31, 2024',
+//     isCollected: false,
+//     code: 'SUMMER2024',
+//   },
+//   {
+//     id: 2,
+//     title: 'Early Bird Discount',
+//     discount: '15% off on advance bookings',
+//     validUntil: 'Jul 15, 2024',
+//     isCollected: true,
+//     code: 'EARLY2024',
+//   },
+//   {
+//     id: 3,
+//     title: 'Weekend Special',
+//     discount: '10% off on weekend tours',
+//     validUntil: 'Sep 30, 2024',
+//     isCollected: false,
+//     code: 'WEEKEND2024',
+//   },
+//   {
+//     id: 4,
+//     title: 'First Time User',
+//     discount: '25% off on your first booking',
+//     validUntil: 'Valid for 30 days',
+//     isCollected: false,
+//     code: 'FIRST2024',
+//   },
+// ];
 
 export default function VouchersScreen() {
   const router = useRouter();
   const { session, isGuest } = useAuth();
   const isAuthenticated = !!session?.user && !isGuest;
-  const [vouchers, setVouchers] = useState(voucherList);
-  const [showVoucherModal, setShowVoucherModal] = useState(false);
-  const [selectedVoucherCode, setSelectedVoucherCode] = useState('');
+  // const [vouchers, setVouchers] = useState(voucherList);
+  // const [showVoucherModal, setShowVoucherModal] = useState(false);
+  // const [selectedVoucherCode, setSelectedVoucherCode] = useState('');
 
-  const handleVoucherPress = (id: number) => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-    router.push(`/home/voucher?id=${id}`);
-  };
+  // Use the useApi hook to fetch vouchers                                                                                                                                                     
+  const {                                                                                                                                                                                      
+    data: voucherData, // Rename data to avoid conflict                                                                                                                                        
+    loading,                                                                                                                                                                                   
+    error,                                                                                                                                                                                     
+    execute: fetchVouchers                                                                                                                                                                     
+  } = useApi<UserVouchersResponse>(api.vouchers.getUserVouchers);  
 
-  const handleCollect = (id: number, code: string, e: any) => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-    e.stopPropagation();
-    setSelectedVoucherCode(code);
-    setShowVoucherModal(true);
-  };
+  // const handleVoucherPress = (id: number) => {
+  //   if (!isAuthenticated) {
+  //     router.push('/login');
+  //     return;
+  //   }
+  //   router.push(`/home/voucher?id=${id}`);
+  // };
 
-  const handleDownload = () => {
-    setShowVoucherModal(false);
-    setVouchers(vouchers.map(voucher => 
-      voucher.code === selectedVoucherCode ? { ...voucher, isCollected: true } : voucher
-    ));
-  };
+  // Fetch vouchers when the user is authenticated and the component mounts                                                                                                                    
+  useEffect(() => {                                                                                                                                                                            
+    if (isAuthenticated && session?.user?.id) {                                                                                                                                                
+      fetchVouchers(session.user.id);                                                                                                                                                          
+    }                                                                                                                                                                                          
+  }, [isAuthenticated, session?.user?.id, fetchVouchers]); // Add dependencies                                                                                                                 
+                                                                                                                                                                                               
+  const handleVoucherPress = (voucher: UserVoucher) => { // Pass the whole voucher object                                                                                                      
+    if (!isAuthenticated) {                                                                                                                                                                    
+      router.push('/login');                                                                                                                                                                   
+      return;                                                                                                                                                                                  
+    }                                                                                                                                                                                          
+    // Navigate to a detail screen if you have one, passing necessary info                                                                                                                     
+    // Example: router.push(`/home/voucherDetail?id=${voucher.id}&code=${voucher.code}`);                                                                                                      
+    // For now, let's just log it, as the original navigation seemed incomplete                                                                                                                
+    console.log('Voucher pressed:', voucher);                                                                                                                                                  
+    // router.push(`/home/voucher?id=${voucher.id}`); // Original navigation might need adjustment                                                                                             
+  };   
+
+  // const handleCollect = (id: number, code: string, e: any) => {
+  //   if (!isAuthenticated) {
+  //     router.push('/login');
+  //     return;
+  //   }
+  //   e.stopPropagation();
+  //   setSelectedVoucherCode(code);
+  //   setShowVoucherModal(true);
+  // };
+
+  // const handleDownload = () => {
+  //   setShowVoucherModal(false);
+  //   setVouchers(vouchers.map(voucher => 
+  //     voucher.code === selectedVoucherCode ? { ...voucher, isCollected: true } : voucher
+  //   ));
+  // };
 
   if (!isAuthenticated) {
     return (
@@ -99,6 +131,35 @@ export default function VouchersScreen() {
     );
   }
 
+  // --- Loading State ---                                                                                                                                                                     
+  if (loading) {                                                                                                                                                                               
+      return (                                                                                                                                                                                  
+        <SafeAreaView style={styles.container}>                                                                                                                                                 
+          <View style={styles.header}>                                                                                                                                                          
+            <Text style={styles.headerTitle}>My Vouchers</Text>                                                                                                                                 
+            <NotificationBell />                                                                                                                                                                
+          </View>                                                                                                                                                                               
+          <LoadingView />                                                                                                                                                                       
+        </SafeAreaView>                                                                                                                                                                         
+      );                                                                                                                                                                                        
+  } 
+  // --- Error State ---                                                                                                                                                                       
+  if (error) {                                                                                                                                                                                 
+    return (                                                                                                                                                                                   
+      <SafeAreaView style={styles.container}>                                                                                                                                                  
+        <View style={styles.header}>                                                                                                                                                           
+          <Text style={styles.headerTitle}>My Vouchers</Text>                                                                                                                                  
+          <NotificationBell />                                                                                                                                                                 
+        </View>                                                                                                                                                                                
+        <ErrorView                                                                                                                                                                             
+          message={error.message || 'Failed to load vouchers.'}                                                                                                                                
+          // Provide a retry function if ErrorView supports it                                                                                                                                 
+          onRetry={session?.user?.id ? () => fetchVouchers(session.user.id) : undefined}                                                                                                       
+        />                                                                                                                                                                                     
+      </SafeAreaView>                                                                                                                                                                          
+    );                                                                                                                                                                                         
+  }  
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -106,46 +167,64 @@ export default function VouchersScreen() {
         <NotificationBell />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {vouchers.map((voucher) => (
-          <TouchableOpacity
-            key={voucher.id}
-            style={styles.voucherCard}
-            onPress={() => handleVoucherPress(voucher.id)}
-          >
-            <View style={styles.voucherInfo}>
-              <Text style={styles.voucherTitle}>{voucher.title}</Text>
-              <Text style={styles.voucherDiscount}>{voucher.discount}</Text>
-              <View style={styles.validityContainer}>
-                <Clock size={16} color="#6B7280" />
-                <Text style={styles.validityText}>Valid until {voucher.validUntil}</Text>
-              </View>
-            </View>
-            {/* <TouchableOpacity
-              style={[
-                styles.collectButton,
-                voucher.isCollected && styles.collectedButton,
-              ]}
-              onPress={(e) => handleCollect(voucher.id, voucher.code, e)}
-              disabled={voucher.isCollected}
-            >
-              <Text style={[
-                styles.collectButtonText,
-                voucher.isCollected && styles.collectedButtonText,
-              ]}>
-                {voucher.isCollected ? 'Collected' : 'Collect'}
-              </Text>
-            </TouchableOpacity> */}
-          </TouchableOpacity>
-        ))}
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>                                                                                                                 
+        {/* Use voucherData from the API response */}                                                                                                                                          
+        {voucherData?.vouchers && voucherData.vouchers.length > 0 ? (                                                                                                                          
+          voucherData.vouchers.map((voucher) => (                                                                                                                                              
+            <TouchableOpacity                                                                                                                                                                  
+              key={voucher.id} // Use ID from API data                                                                                                                                         
+              style={styles.voucherCard}                                                                                                                                                       
+              onPress={() => handleVoucherPress(voucher)} // Pass the voucher object                                                                                                           
+            >                                                                                                                                                                                  
+              <View style={styles.voucherInfo}>                                                                                                                                                
+                <Text style={styles.voucherTitle}>{voucher.title}</Text>                                                                                                                       
+                <Text style={styles.voucherDiscount}>{voucher.discount}</Text>                                                                                                                 
+                <View style={styles.validityContainer}>                                                                                                                                        
+                  <Clock size={16} color="#6B7280" />                                                                                                                                          
+                  {/* Use valid_until from API data */}                                                                                                                                        
+                  <Text style={styles.validityText}>Valid until {voucher.valid_until}</Text>                                                                                                   
+                </View>                                                                                                                                                                        
+              </View>                                                                                                                                                                          
+              {/*                                                                                                                                                                              
+                The "Collect" button logic needs rethinking with an API.                                                                                                                       
+                It would require:                                                                                                                                                              
+                1. An API endpoint to mark a voucher as collected for a user.                                                                                                                  
+                2. A separate useApi call or mutation function to call that endpoint.                                                                                                          
+                3. Updating the UI after the API call succeeds (refetching or updating local cache).                                                                                           
+                For now, it's commented out.                                                                                                                                                   
+              */}                                                                                                                                                                              
+              {/* <TouchableOpacity                                                                                                                                                            
+                style={[                                                                                                                                                                       
+                  styles.collectButton,                                                                                                                                                        
+                  // Use is_collected from API data if available                                                                                                                               
+                  voucher.is_collected && styles.collectedButton,                                                                                                                              
+                ]}                                                                                                                                                                             
+                // onPress={(e) => handleCollect(voucher.id, voucher.code, e)}                                                                                                                 
+                // disabled={voucher.is_collected}                                                                                                                                             
+              >                                                                                                                                                                                
+                <Text style={[                                                                                                                                                                 
+                  styles.collectButtonText,                                                                                                                                                    
+                  // Use is_collected from API data if available                                                                                                                               
+                  voucher.is_collected && styles.collectedButtonText,                                                                                                                          
+                ]}>                                                                                                                                                                            
+                  {voucher.is_collected ? 'Collected' : 'Collect'}                                                                                                                             
+                </Text>                                                                                                                                                                        
+              </TouchableOpacity> */}                                                                                                                                                          
+            </TouchableOpacity>                                                                                                                                                                
+          ))                                                                                                                                                                                   
+        ) : (                                                                                                                                                                                  
+          <View style={styles.emptyStateContainer}>                                                                                                                                            
+             <Text style={styles.emptyStateText}>No vouchers found.</Text>                                                                                                                     
+          </View>                                                                                                                                                                              
+        )}                                                                                                                                                                                     
       </ScrollView>
 
-      <PopUpModal
+      {/* <PopUpModal
         visible={showVoucherModal}
         onClose={() => setShowVoucherModal(false)}
         voucherCode={selectedVoucherCode}
         onDownload={handleDownload}
-      />
+      /> */}
     </SafeAreaView>
   );
 }
@@ -271,5 +350,17 @@ const styles = StyleSheet.create({
   },
   collectedButtonText: {
     color: '#6B7280',
+  },
+  // --- Empty State Styles ---                                                                                                                                                                
+  emptyStateContainer: {                                                                                                                                                                       
+    flex: 1,                                                                                                                                                                                   
+    justifyContent: 'center',                                                                                                                                                                  
+    alignItems: 'center',                                                                                                                                                                      
+    paddingVertical: 50, // Add some padding                                                                                                                                                   
+  },                                                                                                                                                                                           
+  emptyStateText: {                                                                                                                                                                            
+    fontFamily: 'Inter-Regular',                                                                                                                                                               
+    fontSize: 16,                                                                                                                                                                              
+    color: '#6B7280',                                                                                                                                                                          
   },
 });

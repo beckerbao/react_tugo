@@ -1,7 +1,8 @@
 import { Platform } from 'react-native';
 import { PostsResponse } from '@/types/api';
 
-const API_BASE_URL = 'https://api.review.tugo.com.vn/api/v1';
+// const API_BASE_URL = 'https://api.review.tugo.com.vn/api/v1';
+const API_BASE_URL = 'http://localhost:9090/api/v1';
 
 // Types for API responses
 export interface ApiResponse<T> {
@@ -163,14 +164,18 @@ async function fetchApi<T>(
       );
     }
 
-    if (!response.ok) {
-      throw new ApiError(
-        data.message || 'An error occurred',
-        response.status,
-        data.code,
-        JSON.stringify(data)
-      );
-    }
+    // Assuming your API wraps successful responses like { status: 'success', data: ... }                                                                                                      
+    // Adjust this logic if your API structure is different                                                                                                                                    
+    if (!response.ok || (data.status && data.status !== 'success' && data.status !== 200)) {                                                                                                   
+      // Try to get a meaningful message from the response body                                                                                                                               
+      const errorMessage = data?.message || data?.error || 'An error occurred';                                                                                                               
+      throw new ApiError(                                                                                                                                                                     
+        errorMessage,                                                                                                                                                                         
+        response.status,                                                                                                                                                                      
+        data?.code, // Optional error code from API                                                                                                                                           
+        JSON.stringify(data) // Include full response data for debugging                                                                                                                      
+      );                                                                                                                                                                                      
+   }
 
     return data as T;
   } catch (error) {
@@ -223,4 +228,26 @@ export const api = {
     getTours: (destinationId: string | number) =>
       fetchApi<ApiResponse<DestinationDetail>>(`/destination/tours?destination_id=${destinationId}`),
   },
+  // Add the new vouchers endpoint                                                                                                                                                             
+  vouchers: {                                                                                                                                                                                  
+    getUserVouchers: (userId: string) =>                                                                                                                                                       
+      fetchApi<UserVouchersResponse>(`/user-vouchers?user_id=${userId}`), // Assuming wrapper { data: ... }                                                                                    
+  }, 
 };
+
+// Define the structure of a single voucher from the API                                                                                                                                       
+export interface UserVoucher {                                                                                                                                                                 
+  id: number; // Or string, depending on your API                                                                                                                                              
+  title: string;                                                                                                                                                                               
+  discount: string;                                                                                                                                                                            
+  valid_until: string; // Assuming API uses snake_case                                                                                                                                         
+  code: string;                                                                                                                                                                                
+  is_collected?: boolean; // Assuming API provides this status                                                                                                                                 
+  // Add any other fields returned by your API                                                                                                                                                 
+}                                                                                                                                                                                              
+                                                                                                                                                                                               
+// Define the structure for the user-vouchers response                                                                                                                                         
+export interface UserVouchersResponse {                                                                                                                                                        
+  vouchers: UserVoucher[];                                                                                                                                                                     
+  // Add other potential fields like pagination if your API supports it                                                                                                                        
+} 
