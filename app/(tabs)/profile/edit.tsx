@@ -80,9 +80,9 @@ export default function EditProfileScreen() {
               source={{ uri: formData.avatar_url || DEFAULT_AVATAR }}
               style={styles.avatar}
             />
-            <TouchableOpacity style={styles.cameraButton}>
+            {/* <TouchableOpacity style={styles.cameraButton}>
               <Camera size={20} color="#FFFFFF" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
 

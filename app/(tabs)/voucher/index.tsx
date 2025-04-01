@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Clock, LogIn } from 'lucide-react-native';
+import { Clock, LogIn, XCircle, CheckCircle  } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 // import { useState } from 'react';
 import { useEffect } from 'react'; // Added useEffect 
@@ -62,7 +62,7 @@ export default function VouchersScreen() {
     loading,                                                                                                                                                                                   
     error,
     execute: fetchVouchers
-  } = useApi<UserVoucher[]>(api.vouchers.getUserVouchers); // Expect an array of UserVoucher
+  } = useApi<ApiResponse<UserVoucher[]>>(api.vouchers.getUserVouchers);    // Expect an array of UserVoucher
 
   // const handleVoucherPress = (id: number) => {
   //   if (!isAuthenticated) {
@@ -79,34 +79,32 @@ export default function VouchersScreen() {
     }                                                                                                                                                                                          
   }, [isAuthenticated, session?.user?.id, fetchVouchers]); // Add dependencies                                                                                                                 
                                                                                                                                                                                                
-  const handleVoucherPress = (voucher: UserVoucher) => { // Pass the whole voucher object                                                                                                      
-    if (!isAuthenticated) {                                                                                                                                                                    
-      router.push('/login');                                                                                                                                                                   
-      return;                                                                                                                                                                                  
-    }                                                                                                                                                                                          
-    // Navigate to a detail screen if you have one, passing necessary info                                                                                                                     
-    // Example: router.push(`/home/voucherDetail?id=${voucher.id}&code=${voucher.code}`);                                                                                                      
-    // For now, let's just log it, as the original navigation seemed incomplete                                                                                                                
-    console.log('Voucher pressed:', voucher);                                                                                                                                                  
-    // router.push(`/home/voucher?id=${voucher.id}`); // Original navigation might need adjustment                                                                                             
-  };   
-
-  // const handleCollect = (id: number, code: string, e: any) => {
-  //   if (!isAuthenticated) {
-  //     router.push('/login');
-  //     return;
-  //   }
-  //   e.stopPropagation();
-  //   setSelectedVoucherCode(code);
-  //   setShowVoucherModal(true);
-  // };
-
-  // const handleDownload = () => {
-  //   setShowVoucherModal(false);
-  //   setVouchers(vouchers.map(voucher => 
-  //     voucher.code === selectedVoucherCode ? { ...voucher, isCollected: true } : voucher
-  //   ));
-  // };
+  const handleVoucherPress = (voucher: UserVoucher) => {                                                                                                                                      
+    console.log('--- handleVoucherPress called ---'); // Log entry                                                                                                                            
+    console.log('Is Authenticated:', isAuthenticated); // Log auth status                                                                                                                     
+    console.log('Voucher Data:', JSON.stringify(voucher, null, 2)); // Log the voucher data being passed                                                                                      
+                                                                                                                                                                                              
+    if (!isAuthenticated) {                                                                                                                                                                   
+      console.log('Redirecting to login...');                                                                                                                                                 
+      router.push('/login');                                                                                                                                                                  
+      return;                                                                                                                                                                                 
+    }                                                                                                                                                                                         
+                                                                                                                                                                                              
+    const targetPath = '/(tabs)/voucher/detail';                                                                                                                                              
+    const params = { ...voucher };                                                                                                                                                            
+    console.log(`Attempting to navigate to: ${targetPath}`);                                                                                                                                  
+    console.log('With params:', JSON.stringify(params, null, 2));                                                                                                                             
+                                                                                                                                                                                              
+    try {                                                                                                                                                                                     
+      router.push({                                                                                                                                                                           
+        pathname: targetPath,                                                                                                                                                                 
+        params: params                                                                                                                                                                        
+      });                                                                                                                                                                                     
+      console.log('router.push executed successfully (no immediate error)');                                                                                                                  
+    } catch (navError) {                                                                                                                                                                      
+      console.error('Error during router.push:', navError); // Log any synchronous error                                                                                                      
+    }                                                                                                                                                                                         
+  };
 
   if (!isAuthenticated) {
     return (
@@ -144,6 +142,27 @@ export default function VouchersScreen() {
         </SafeAreaView>                                                                                                                                                                         
       );                                                                                                                                                                                        
   } 
+
+  // Inside VouchersScreen component, right before the main return statement:                                                                                                                    
+                                                                                                                                                                                               
+console.log('--- VouchersScreen Render ---');                                                                                                                                                  
+console.log('Loading:', loading);                                                                                                                                                              
+console.log('Error:', JSON.stringify(error, null, 2)); // Stringify error for better visibility                                                                                                
+console.log('VoucherData:', JSON.stringify(voucherData, null, 2)); // Stringify the whole data object                                                                                          
+                                                                                                                                                                                               
+if (voucherData) {                                                                                                                                                                             
+  console.log('VoucherData exists.');                                                                                                                                                          
+  console.log('VoucherData.data:', voucherData.data); // Log the inner data array                                                                                                              
+  console.log('Is VoucherData.data an array?', Array.isArray(voucherData.data));                                                                                                               
+  if (Array.isArray(voucherData.data)) {                                                                                                                                                       
+      console.log('VoucherData.data.length:', voucherData.data.length);                                                                                                                        
+      console.log('Condition Check (voucherData?.data && voucherData.data.length > 0):', voucherData?.data && voucherData.data.length > 0);                                                    
+  }                                                                                                                                                                                            
+} else {                                                                                                                                                                                       
+  console.log('VoucherData is null or undefined.');                                                                                                                                            
+}                                                                                                                                                                                              
+console.log('--- End VouchersScreen Render ---');  
+
   // --- Error State ---                                                                                                                                                                       
   if (error) {                                                                                                                                                                                 
     return (                                                                                                                                                                                   
@@ -169,9 +188,10 @@ export default function VouchersScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Use voucherData directly as it's the array */}
-        {voucherData && voucherData.length > 0 ? (
-          voucherData.map((voucher) => (
+        {/* Use voucherData directly as it's the array */}        
+        {voucherData?.data && voucherData.data.length > 0 ? (        
+          <>          
+          {voucherData.data.map((voucher) => ( // Map over voucherData.data
             <TouchableOpacity
               key={voucher.id} // Use ID from API data
               // Add opacity style if voucher is expired or used
@@ -185,41 +205,27 @@ export default function VouchersScreen() {
             >
               <View style={styles.voucherInfo}>
                 {/* Use new field names */}
-                <Text style={styles.voucherTitle}>{voucher.voucher_name}</Text>
+                <View style={styles.titleContainer}>                                                                                                                                                         
+                  <Text style={styles.voucherTitle}>{voucher.voucher_name}</Text>                                                                                                                            
+                  {/* Conditionally render icons based on status */}                                                                                                                                         
+                  {voucher.status === 'expired' && (                                                                                                                                                         
+                    <XCircle size={16} color="#EF4444" style={styles.statusIcon} />                                                                                                                          
+                  )}                                                                                                                                                                                         
+                  {/* Show 'used' icon only if status isn't already 'expired' */}                                                                                                                            
+                  {voucher.status !== 'expired' && voucher.usage_status === 'used' && (                                                                                                                      
+                    <CheckCircle size={16} color="#9CA3AF" style={styles.statusIcon} />                                                                                                                      
+                  )}                                                                                                                                                                                         
+                </View>
                 <Text style={styles.voucherDiscount}>{voucher.term_condition}</Text>
                 <View style={styles.validityContainer}>
                   <Clock size={16} color="#6B7280" />
                   {/* Use valid_until from API data and format it */}
                   <Text style={styles.validityText}>Valid until {new Date(voucher.valid_until).toLocaleDateString()}</Text>
                 </View>
-              </View>
-              {/*
-                The "Collect" button logic needs rethinking with an API.
-                It would require:                                                                                                                                                              
-                1. An API endpoint to mark a voucher as collected for a user.                                                                                                                  
-                2. A separate useApi call or mutation function to call that endpoint.                                                                                                          
-                3. Updating the UI after the API call succeeds (refetching or updating local cache).                                                                                           
-                For now, it's commented out.                                                                                                                                                   
-              */}                                                                                                                                                                              
-              {/* <TouchableOpacity                                                                                                                                                            
-                style={[                                                                                                                                                                       
-                  styles.collectButton,                                                                                                                                                        
-                  // Use is_collected from API data if available                                                                                                                               
-                  voucher.is_collected && styles.collectedButton,                                                                                                                              
-                ]}                                                                                                                                                                             
-                // onPress={(e) => handleCollect(voucher.id, voucher.code, e)}                                                                                                                 
-                // disabled={voucher.is_collected}                                                                                                                                             
-              >                                                                                                                                                                                
-                <Text style={[                                                                                                                                                                 
-                  styles.collectButtonText,                                                                                                                                                    
-                  // Use is_collected from API data if available                                                                                                                               
-                  voucher.is_collected && styles.collectedButtonText,                                                                                                                          
-                ]}>                                                                                                                                                                            
-                  {voucher.is_collected ? 'Collected' : 'Collect'}                                                                                                                             
-                </Text>                                                                                                                                                                        
-              </TouchableOpacity> */}                                                                                                                                                          
+              </View>                                                                                                                                                                      
             </TouchableOpacity>                                                                                                                                                                
-          ))
+          ))}
+          </>
         ) : (
           // Show empty state if array is empty or null/undefined
           <View style={styles.emptyStateContainer}>
@@ -323,7 +329,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: '#8B5CF6',
-    marginBottom: 4,
+    // marginBottom: 4,
+    marginRight: 8,
   },
   voucherDiscount: {
     fontFamily: 'Inter-Regular',
@@ -341,6 +348,16 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginLeft: 4,
   },
+  // Add these new styles:                                                                                                                                                                     
+  titleContainer: {                                                                                                                                                                            
+    flexDirection: 'row',                                                                                                                                                                      
+    alignItems: 'center',                                                                                                                                                                      
+    marginBottom: 4, // Add margin previously on voucherTitle                                                                                                                                  
+  },                                                                                                                                                                                           
+  statusIcon: {                                                                                                                                                                                
+    // You can add margin here if needed, but marginRight on title works too                                                                                                                   
+    // marginLeft: 8,                                                                                                                                                                          
+  }, 
   collectButton: {
     backgroundColor: '#8B5CF6',
     paddingHorizontal: 16,

@@ -233,7 +233,7 @@ export const api = {
     // Update the expected type parameter for fetchApi.
     // fetchApi returns the `data` field of ApiResponse, which is UserVoucher[] here.
     getUserVouchers: (userId: string) =>
-      fetchApi<UserVoucher[]>(`/user-vouchers?user_id=${userId}`),
+      fetchApi<ApiResponse<UserVoucher[]>>(`/user-vouchers?user_id=${userId}`),
   },
 };
 
