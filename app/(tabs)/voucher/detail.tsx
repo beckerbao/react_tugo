@@ -1,4 +1,5 @@
-import React from 'react';                                                                                                                                                                     import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';                                                                                                 
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Alert } from 'react-native'; // Import Alert                                                                                                                                                                                                                                               import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';                                                                                                 
 import { SafeAreaView } from 'react-native-safe-area-context';                                                                                                                                 
 import { useRouter, useLocalSearchParams } from 'expo-router';                                                                                                                                 
 import { ArrowLeft, Clock, Tag, Info, XCircle, CheckCircle } from 'lucide-react-native';                                                                                                       
@@ -11,7 +12,8 @@ export default function VoucherDetailScreen() {
   // Reconstruct the voucher object from params                                                                                                                                                
   // Since we spread the object, params directly contains its properties                                                                                                                       
   // We need to cast the types appropriately                                                                                                                                                   
-  const voucher = params as unknown as UserVoucher;                                                                                                                                            
+  const voucher = params as unknown as UserVoucher;
+  console.log('Voucher Details:', JSON.stringify(voucher, null, 2)); // <--- ADD THIS LINE                                                                                                                                              
                                                                                                                                                                                                
   // Basic check if essential data is missing (adjust based on required fields)                                                                                                                
   if (!voucher || !voucher.id || !voucher.voucher_name) {                                                                                                                                      
@@ -46,7 +48,19 @@ export default function VoucherDetailScreen() {
       return { text: 'Active', color: '#10B981' };                                                                                                                                             
     }                                                                                                                                                                                          
     return { text: voucher.status, color: '#6B7280' }; // Default fallback                                                                                                                     
+  };
+  // --- Action Handlers (Placeholders) ---                                                                                                                                                    
+  const handleClaimPress = () => {                                                                                                                                                             
+    // TODO: Implement actual claim logic (e.g., API call)                                                                                                                                     
+    Alert.alert('Claim Voucher', `Claiming voucher: ${voucher.code}`);                                                                                                                         
+    // You might want to update the voucher state locally or refetch after success                                                                                                             
+  };
+  const handleUsePress = () => {                                                                                                                                                               
+    // TODO: Implement actual use logic (e.g., navigate to booking/search with voucher applied)                                                                                                
+    Alert.alert('Use Voucher', `Using voucher: ${voucher.code}`);                                                                                                                              
+    // This might involve navigating to a relevant screen or applying the code                                                                                                                 
   };                                                                                                                                                                                           
+  // --- End Action Handlers ---                                                                                                                                                                                            
                                                                                                                                                                                                
   const statusInfo = getStatusTextAndColor();                                                                                                                                                  
                                                                                                                                                                                                
@@ -71,6 +85,10 @@ export default function VoucherDetailScreen() {
             )}                                                                                                                                                                                 
             {voucher.status !== 'expired' && voucher.usage_status === 'used' && (                                                                                                              
               <CheckCircle size={20} color="#9CA3AF" style={styles.statusIcon} />                                                                                                              
+            )}
+            {/* Optional: Add an icon for claimed but not used */}                                                                                                                             
+            {voucher.status === 'active' && voucher.claim_status === 'claimed' && voucher.usage_status === 'not_used' && (                                                                     
+               <CheckCircle size={20} color="#10B981" style={styles.statusIcon} />                
             )}                                                                                                                                                                                 
           </View>                                                                                                                                                                              
           <Text style={[styles.statusText, { color: statusInfo.color }]}>                                                                                                                      
@@ -79,7 +97,7 @@ export default function VoucherDetailScreen() {
         </View>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
         {/* Voucher Code */}                                                                                                                                                                   
         <View style={styles.section}>                                                                                                                                                          
-          <View style={styles.sectionHeader}>                                                                                                                                                  
+            <View style={styles.sectionHeader}>                                                                                                                                                 
             <Tag size={18} color="#4B5563" />                                                                                                                                                  
             <Text style={styles.sectionTitle}>Code</Text>                                                                                                                                      
           </View>                                                                                                                                                                              
@@ -117,7 +135,25 @@ export default function VoucherDetailScreen() {
           </View>                                                                                                                                                                              
           <Text style={styles.sectionText}>{voucher.term_condition}</Text>                                                                                                                     
         </View>                                                                                                                                                    
+        {/* --- Action Buttons --- */}                                                                                                                                                         
+        <View style={styles.buttonContainer}>                                                                                                                                                  
+          {/* Show "Claim" button if active, not claimed */}                                                                                                                                   
+          {voucher.status === 'active' && voucher.claim_status === 'not_claimed' && (                                                                                                          
+            <TouchableOpacity style={styles.actionButton} onPress={handleClaimPress}>                                                                                                          
+              <Text style={styles.actionButtonText}>Claim Now</Text>                                                                                                                           
+            </TouchableOpacity>                                                                                                                                                                
+          )}                                                                                                                                                                                   
                                                                                                                                                                                                
+          {/* Show "Use" button if active, claimed, and not used */}                                                                                                                           
+          {voucher.status === 'active' &&                                                                                                                                                      
+            voucher.claim_status === 'claimed' &&                                                                                                                                              
+            voucher.usage_status === 'not_used' && (                                                                                                                                           
+              <TouchableOpacity style={styles.actionButton} onPress={handleUsePress}>                                                                                                          
+                <Text style={styles.actionButtonText}>Use Now</Text>                                                                                                                           
+              </TouchableOpacity>                                                                                                                                                              
+          )}                                                                                                                                                                                   
+        </View>                                                                                                                                                                                
+        {/* --- End Action Buttons --- */}                                                                                                                                                                                        
       </ScrollView>                                                                                                                                                                            
     </SafeAreaView>                                                                                                                                                                            
   );                                                                                                                                                                                           
@@ -237,5 +273,25 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',                                                                                                                                                              
     fontSize: 16,                                                                                                                                                                              
     color: '#FFFFFF',                                                                                                                                                                          
-  },                                                                                                                                                                                           
+  },
+    // --- New Styles for Action Buttons ---                                                                                                                                                     
+    buttonContainer: {                                                                                                                                                                           
+        marginTop: 10, // Add some space above the button(s)                                                                                                                                       
+        marginBottom: 20, // Add space at the bottom of the scroll view                                                                                                                            
+    },                                                                                                                                                                                           
+    actionButton: {                                                                                                                                                                              
+        backgroundColor: '#8B5CF6', // Use primary color                                                                                                                                           
+        paddingVertical: 14,                                                                                                                                                                       
+        paddingHorizontal: 20,                                                                                                                                                                     
+        borderRadius: 8,                                                                                                                                                                           
+        alignItems: 'center',                                                                                                                                                                      
+        justifyContent: 'center',                                                                                                                                                                  
+        marginTop: 10, // Space between buttons if both could somehow appear (though logic prevents this)                                                                                          
+    },                                                                                                                                                                                           
+    actionButtonText: {                                                                                                                                                                          
+        fontFamily: 'Inter-SemiBold',                                                                                                                                                              
+        fontSize: 16,                                                                                                                                                                              
+        color: '#FFFFFF',                                                                                                                                                                          
+    },                                                                                                                                                                                           
+    // --- End New Styles ---                                                                                                                                                                                            
 });
