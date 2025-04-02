@@ -234,6 +234,12 @@ export const api = {
     // fetchApi returns the `data` field of ApiResponse, which is UserVoucher[] here.
     getUserVouchers: (userId: string) =>
       fetchApi<ApiResponse<UserVoucher[]>>(`/user-vouchers?user_id=${userId}`),
+    // Add the new claim voucher endpoint
+    claimVoucher: (userId: string, voucherId: number) =>
+      fetchApi<ApiResponse<any>>(`/voucher/claim?user_id=${userId}`, { // Use any for now, refine if success response has specific data
+        method: 'POST',
+        body: JSON.stringify({ voucher_id: voucherId }),
+      }),
   },
 };
 
