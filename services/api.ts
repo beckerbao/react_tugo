@@ -240,6 +240,11 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ voucher_id: voucherId }),
       }),
+    useVoucher: (userId: string, voucherId: number) =>                                                                                                                                         
+      fetchApi<ApiResponse<any>>(`/voucher/use?user_id=${userId}`, {                                                                                                                           
+        method: 'POST',                                                                                                                                                                        
+        body: JSON.stringify({ voucher_id: voucherId }),                                                                                                                                       
+      }), 
   },
 };
 
