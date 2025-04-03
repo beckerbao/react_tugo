@@ -49,158 +49,61 @@ export default function VouchersScreen() {
   const router = useRouter();                                                                                                                                                                  
   const { session, isGuest } = useAuth();                                                                                                                                                      
   const isAuthenticated = !!session?.user && !isGuest;                                                                                                                                         
-  const [refreshing, setRefreshing] = useState(false); // Add this line                                                                                                                        
-  // const [vouchers, setVouchers] = useState(voucherList);
-  // const [showVoucherModal, setShowVoucherModal] = useState(false);
-  // const [selectedVoucherCode, setSelectedVoucherCode] = useState('');
-
-  // Use the useApi hook to fetch vouchers                                                                                                                                                     
+  const [refreshing, setRefreshing] = useState(false);                                                                                                                                         
+                                                                                                                                                                                               
   const {                                                                                                                                                                                      
-    data: voucherData, // Rename data to avoid conflict                                                                                                                                        
+    data: voucherData,                                                                                                                                                                         
     loading,                                                                                                                                                                                   
     error,                                                                                                                                                                                     
-    execute: fetchVouchers // Keep execute from useApi                                                                                                                                         
-  } = useApi<ApiResponse<UserVoucher[]>>(api.vouchers.getUserVouchers);    // Expect an array of UserVoucher                                                                                   
+    execute: fetchVouchers,                                                                                                                                                                    
+  } = useApi<ApiResponse<UserVoucher[]>>(api.vouchers.getUserVouchers);                                                                                                                        
                                                                                                                                                                                                
-  // --- Wrap the execution logic in useCallback for useFocusEffect ---                                                                                                                        
-  // Note: useApi's execute function is already stable, but we wrap the call                                                                                                                   
-  // based on session ID for clarity in dependencies.                                                                                                                                          
   const memoizedFetchVouchers = useCallback(() => {                                                                                                                                            
     if (session?.user?.id) {                                                                                                                                                                   
       fetchVouchers(session.user.id);                                                                                                                                                          
     }                                                                                                                                                                                          
-    // If not authenticated, useApi hook won't execute, matching previous logic                                                                                                                
-  }, [session?.user?.id, fetchVouchers]); // Dependency on session ID and the stable execute function                                                                                          
+  }, [session?.user?.id, fetchVouchers]);                                                                                                                                                      
                                                                                                                                                                                                
-                                                                                                                                                                                               
-  // Fetch vouchers when the user is authenticated and the component mounts                                                                                                                    
   useEffect(() => {                                                                                                                                                                            
     if (isAuthenticated && session?.user?.id) {                                                                                                                                                
-      // Call the memoized wrapper for consistency, although direct call would also work here                                                                                                  
       memoizedFetchVouchers();                                                                                                                                                                 
     }                                                                                                                                                                                          
-  }, [isAuthenticated, session?.user?.id, memoizedFetchVouchers]); // Use memoizedFetchVouchers here                                                                                           
+  }, [isAuthenticated, session?.user?.id, memoizedFetchVouchers]);                                                                                                                             
                                                                                                                                                                                                
-                                                                                                                                                                                               
-  // --- Refetch data when the screen comes into focus ---                                                                                                                                     
   useFocusEffect(                                                                                                                                                                              
     useCallback(() => {                                                                                                                                                                        
-      // Only fetch if we have a user session and are not a guest                                                                                                                              
       if (isAuthenticated && session?.user?.id) {                                                                                                                                              
         console.log('Voucher list focused, refetching...');                                                                                                                                    
-        // Call the memoized fetch function                                                                                                                                                    
         memoizedFetchVouchers();                                                                                                                                                               
       }                                                                                                                                                                                        
-      // No need for an else block, the initial useEffect handles clearing data on logout                                                                                                      
-                                                                                                                                                                                               
-      // Optional: Return a cleanup function if needed                                                                                                                                         
-      return () => {                                                                                                                                                                           
-        // console.log('Voucher list unfocused');                                                                                                                                              
-      };                                                                                                                                                                                       
-    }, [isAuthenticated, session?.user?.id, memoizedFetchVouchers]) // Dependencies                                                                                                            
+      return () => {};                                                                                                                                                                         
+    }, [isAuthenticated, session?.user?.id, memoizedFetchVouchers])                                                                                                                            
   );                                                                                                                                                                                           
                                                                                                                                                                                                
-                                                                                                                                                                                               
   const handleVoucherPress = (voucher: UserVoucher) => {                                                                                                                                       
-    console.log('--- handleVoucherPress called ---'); // Log entry                                                                                                                            
-    console.log('Is Authenticated:', isAuthenticated); // Log auth status                                                                                                                     
-    console.log('Voucher Data:', JSON.stringify(voucher, null, 2)); // Log the voucher data being passed                                                                                      
-                                                                                                                                                                                              
-    if (!isAuthenticated) {                                                                                                                                                                   
-      console.log('Redirecting to login...');                                                                                                                                                 
-      router.push('/login');                                                                                                                                                                  
-      return;                                                                                                                                                                                 
-    }                                                                                                                                                                                         
-                                                                                                                                                                                              
-    const targetPath = '/(tabs)/voucher/detail';                                                                                                                                              
-    const params = { ...voucher };                                                                                                                                                            
-    console.log(`Attempting to navigate to: ${targetPath}`);                                                                                                                                  
-    console.log('With params:', JSON.stringify(params, null, 2));                                                                                                                             
-                                                                                                                                                                                              
-    try {                                                                                                                                                                                     
-      router.push({                                                                                                                                                                           
-        pathname: targetPath,                                                                                                                                                                 
-        params: params                                                                                                                                                                        
-      });                                                                                                                                                                                     
-      console.log('router.push executed successfully (no immediate error)');                                                                                                                  
-    } catch (navError) {                                                                                                                                                                      
-      console.error('Error during router.push:', navError); // Log any synchronous error                                                                                                      
-    }                                                                                                                                                                                         
-  };
-
-  if (!isAuthenticated) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>My Vouchers</Text>
-          <NotificationBell />
-        </View>
-        <View style={styles.guestContainer}>
-          <LogIn size={48} color="#8B5CF6" />
-          <Text style={styles.guestTitle}>Login Required</Text>
-          <Text style={styles.guestMessage}>
-            Please login to view and collect vouchers
-          </Text>
-          <TouchableOpacity 
-            style={styles.loginButton}
-            onPress={() => router.push('/login')}
-          >
-            <Text style={styles.loginButtonText}>Login Now</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // --- Loading State ---                                                                                                                                                                     
-  if (loading) {                                                                                                                                                                               
-      return (                                                                                                                                                                                  
-        <SafeAreaView style={styles.container}>                                                                                                                                                 
-          <View style={styles.header}>                                                                                                                                                          
-            <Text style={styles.headerTitle}>My Vouchers</Text>                                                                                                                                 
-            <NotificationBell />                                                                                                                                                                
-          </View>                                                                                                                                                                               
-          <LoadingView />                                                                                                                                                                       
-        </SafeAreaView>                                                                                                                                                                         
-      );                                                                                                                                                                                        
-  } 
-
-  // Inside VouchersScreen component, right before the main return statement:                                                                                                                    
+    console.log('--- handleVoucherPress called ---');                                                                                                                                          
+    console.log('Is Authenticated:', isAuthenticated);                                                                                                                                         
+    console.log('Voucher Data:', JSON.stringify(voucher, null, 2));                                                                                                                            
                                                                                                                                                                                                
-console.log('--- VouchersScreen Render ---');                                                                                                                                                  
-console.log('Loading:', loading);                                                                                                                                                              
-console.log('Error:', JSON.stringify(error, null, 2)); // Stringify error for better visibility                                                                                                
-console.log('VoucherData:', JSON.stringify(voucherData, null, 2)); // Stringify the whole data object                                                                                          
+    if (!isAuthenticated) {                                                                                                                                                                    
+      console.log('Redirecting to login...');                                                                                                                                                  
+      router.push('/login');                                                                                                                                                                   
+      return;                                                                                                                                                                                  
+    }                                                                                                                                                                                          
                                                                                                                                                                                                
-if (voucherData) {                                                                                                                                                                             
-  console.log('VoucherData exists.');                                                                                                                                                          
-  console.log('VoucherData.data:', voucherData.data); // Log the inner data array                                                                                                              
-  console.log('Is VoucherData.data an array?', Array.isArray(voucherData.data));                                                                                                               
-  if (Array.isArray(voucherData.data)) {                                                                                                                                                       
-      console.log('VoucherData.data.length:', voucherData.data.length);                                                                                                                        
-      console.log('Condition Check (voucherData?.data && voucherData.data.length > 0):', voucherData?.data && voucherData.data.length > 0);                                                    
-  }                                                                                                                                                                                            
-} else {                                                                                                                                                                                       
-  console.log('VoucherData is null or undefined.');                                                                                                                                            
-}                                                                                                                                                                                              
-console.log('--- End VouchersScreen Render ---');  
-
-  // --- Error State ---                                                                                                                                                                       
-  if (error) {                                                                                                                                                                                 
-    return (                                                                                                                                                                                   
-      <SafeAreaView style={styles.container}>                                                                                                                                                  
-        <View style={styles.header}>                                                                                                                                                           
-          <Text style={styles.headerTitle}>My Vouchers</Text>                                                                                                                                  
-          <NotificationBell />                                                                                                                                                                 
-        </View>                                                                                                                                                                                
-        <ErrorView                                                                                                                                                                             
-          message={error.message || 'Failed to load vouchers.'}                                                                                                                                
-          // Provide a retry function if ErrorView supports it                                                                                                                                 
-          onRetry={session?.user?.id ? () => fetchVouchers(session.user.id) : undefined}                                                                                                       
-        />                                                                                                                                                                                     
-      </SafeAreaView>                                                                                                                                                                          
-    );                                                                                                                                                                                         
-  }                                                                                                                                                                                            
+    const targetPath = '/(tabs)/voucher/detail';                                                                                                                                               
+    const params = { ...voucher };                                                                                                                                                             
+                                                                                                                                                                                               
+    try {                                                                                                                                                                                      
+      router.push({                                                                                                                                                                            
+        pathname: targetPath,                                                                                                                                                                  
+        params: params,                                                                                                                                                                        
+      });                                                                                                                                                                                      
+      console.log('Navigation executed successfully');                                                                                                                                         
+    } catch (navError) {                                                                                                                                                                       
+      console.error('Error during router.push:', navError);                                                                                                                                    
+    }                                                                                                                                                                                          
+  };                                                                                                                                                                                           
                                                                                                                                                                                                
   // Handle pull-to-refresh                                                                                                                                                                    
   const onRefresh = useCallback(async () => {                                                                                                                                                  
@@ -209,72 +112,133 @@ console.log('--- End VouchersScreen Render ---');
       return;                                                                                                                                                                                  
     }                                                                                                                                                                                          
     setRefreshing(true);                                                                                                                                                                       
-    await memoizedFetchVouchers(); // Call the memoized fetch wrapper                                                                                                                          
+    await memoizedFetchVouchers();                                                                                                                                                             
     setRefreshing(false);                                                                                                                                                                      
-  }, [isAuthenticated, session?.user?.id, memoizedFetchVouchers]); // Update dependencies
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Vouchers</Text>
-        <NotificationBell />
-      </View>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Use voucherData directly as it's the array */}        
-        {voucherData?.data && voucherData.data.length > 0 ? (        
-          <>          
-          {voucherData.data.map((voucher) => ( // Map over voucherData.data
-            <TouchableOpacity
-              key={voucher.id} // Use ID from API data
-              // Add opacity style if voucher is expired or used
-              style={[
-                styles.voucherCard,
-                (voucher.status === 'expired' || voucher.usage_status === 'used') && styles.disabledVoucherCard,
-              ]}
-              onPress={() => handleVoucherPress(voucher)} // Pass the voucher object
-              // Disable press if expired or used
-              disabled={voucher.status === 'expired' || voucher.usage_status === 'used'}
-            >
-              <View style={styles.voucherInfo}>
-                {/* Use new field names */}
-                <View style={styles.titleContainer}>                                                                                                                                                         
-                  <Text style={styles.voucherTitle}>{voucher.voucher_name}</Text>                                                                                                                            
-                  {/* Conditionally render icons based on status */}                                                                                                                                         
-                  {voucher.status === 'expired' && (                                                                                                                                                         
-                    <XCircle size={16} color="#EF4444" style={styles.statusIcon} />                                                                                                                          
-                  )}                                                                                                                                                                                         
-                  {/* Show 'used' icon only if status isn't already 'expired' */}                                                                                                                            
-                  {voucher.status !== 'expired' && voucher.usage_status === 'used' && (                                                                                                                      
-                    <CheckCircle size={16} color="#9CA3AF" style={styles.statusIcon} />                                                                                                                      
-                  )}                                                                                                                                                                                         
-                </View>
-                <Text style={styles.voucherDiscount}>{voucher.term_condition}</Text>
-                <View style={styles.validityContainer}>
-                  <Clock size={16} color="#6B7280" />
-                  {/* Use valid_until from API data and format it */}
-                  <Text style={styles.validityText}>Valid until {new Date(voucher.valid_until).toLocaleDateString()}</Text>
-                </View>
-              </View>                                                                                                                                                                      
-            </TouchableOpacity>                                                                                                                                                                
-          ))}
-          </>
-        ) : (
-          // Show empty state if array is empty or null/undefined
-          <View style={styles.emptyStateContainer}>
-             <Text style={styles.emptyStateText}>No vouchers available.</Text>
-          </View>
-        )}
-      </ScrollView>
-
-      {/* <PopUpModal
-        visible={showVoucherModal}
-        onClose={() => setShowVoucherModal(false)}
-        voucherCode={selectedVoucherCode}
-        onDownload={handleDownload}
-      /> */}
-    </SafeAreaView>
-  );
+  }, [isAuthenticated, session?.user?.id, memoizedFetchVouchers]);                                                                                                                             
+                                                                                                                                                                                               
+  // Final return which always renders the same parent structure.                                                                                                                              
+  return (                                                                                                                                                                                     
+    <SafeAreaView style={styles.container}>                                                                                                                                                    
+      <View style={styles.header}>                                                                                                                                                             
+        <Text style={styles.headerTitle}>My Vouchers</Text>                                                                                                                                    
+        <NotificationBell />                                                                                                                                                                   
+      </View>                                                                                                                                                                                  
+                                                                                                                                                                                               
+      {/* Render guest view if not authenticated */}                                                                                                                                           
+      {!isAuthenticated && (                                                                                                                                                                   
+        <View style={styles.guestContainer}>                                                                                                                                                   
+          <LogIn size={48} color="#8B5CF6" />                                                                                                                                                  
+          <Text style={styles.guestTitle}>Login Required</Text>                                                                                                                                
+          <Text style={styles.guestMessage}>                                                                                                                                                   
+            Please login to view and collect vouchers                                                                                                                                          
+          </Text>                                                                                                                                                                              
+          <TouchableOpacity                                                                                                                                                                    
+            style={styles.loginButton}                                                                                                                                                         
+            onPress={() => router.push('/login')}                                                                                                                                              
+          >                                                                                                                                                                                    
+            <Text style={styles.loginButtonText}>Login Now</Text>                                                                                                                              
+          </TouchableOpacity>                                                                                                                                                                  
+        </View>                                                                                                                                                                                
+      )}                                                                                                                                                                                       
+                                                                                                                                                                                               
+      {/* If authenticated, show loading, error, or the vouchers list */}                                                                                                                      
+      {isAuthenticated && (                                                                                                                                                                    
+        <>                                                                                                                                                                                     
+          {loading && (                                                                                                                                                                        
+            <View style={styles.flexCenter}>                                                                                                                                                   
+              <LoadingView />                                                                                                                                                                  
+            </View>                                                                                                                                                                            
+          )}                                                                                                                                                                                   
+          {error && (                                                                                                                                                                          
+            <ErrorView                                                                                                                                                                         
+              message={error.message || 'Failed to load vouchers.'}                                                                                                                            
+              onRetry={                                                                                                                                                                        
+                session?.user?.id ? () => fetchVouchers(session.user.id) : undefined                                                                                                           
+              }                                                                                                                                                                                
+            />                                                                                                                                                                                 
+          )}                                                                                                                                                                                   
+          {/* When not loading and no error, show vouchers */}                                                                                                                                 
+          {!loading && !error && (                                                                                                                                                             
+            <ScrollView                                                                                                                                                                        
+              style={styles.content}                                                                                                                                                           
+              showsVerticalScrollIndicator={false}                                                                                                                                             
+              refreshControl={                                                                                                                                                                 
+                // Optionally attach refresh control if desired                                                                                                                                
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />                                                                                                               
+              }                                                                                                                                                                                
+            >                                                                                                                                                                                  
+              {voucherData?.data && voucherData.data.length > 0 ? (                                                                                                                            
+                <>                                                                                                                                                                             
+                  {voucherData.data.map((voucher) => (                                                                                                                                         
+                    <TouchableOpacity                                                                                                                                                          
+                      key={voucher.id}                                                                                                                                                         
+                      style={[                                                                                                                                                                 
+                        styles.voucherCard,                                                                                                                                                    
+                        (voucher.status === 'expired' ||                                                                                                                                       
+                          voucher.usage_status === 'used') &&                                                                                                                                  
+                          styles.disabledVoucherCard,                                                                                                                                          
+                      ]}                                                                                                                                                                       
+                      onPress={() => handleVoucherPress(voucher)}                                                                                                                              
+                      disabled={                                                                                                                                                               
+                        voucher.status === 'expired' ||                                                                                                                                        
+                        voucher.usage_status === 'used'                                                                                                                                        
+                      }                                                                                                                                                                        
+                    >                                                                                                                                                                          
+                      <View style={styles.voucherInfo}>                                                                                                                                        
+                        <View style={styles.titleContainer}>                                                                                                                                   
+                          <Text style={styles.voucherTitle}>                                                                                                                                   
+                            {voucher.voucher_name}                                                                                                                                             
+                          </Text>                                                                                                                                                              
+                          {voucher.status === 'expired' && (                                                                                                                                   
+                            <XCircle                                                                                                                                                           
+                              size={16}                                                                                                                                                        
+                              color="#EF4444"                                                                                                                                                  
+                              style={styles.statusIcon}                                                                                                                                        
+                            />                                                                                                                                                                 
+                          )}                                                                                                                                                                   
+                          {voucher.status !== 'expired' &&                                                                                                                                     
+                            voucher.usage_status === 'used' && (                                                                                                                               
+                              <CheckCircle                                                                                                                                                     
+                                size={16}                                                                                                                                                      
+                                color="#EF4444"                                                                                                                                                
+                                style={styles.statusIcon}                                                                                                                                      
+                              />                                                                                                                                                               
+                            )}
+                          {voucher.claim_status === 'claimed' && (                                                                                                                                                   
+                            <Tag size={16} color="#10B981" style={styles.statusIcon} />                                                                                                                              
+                          )}                                                                                                                                                                                         
+                          {/* Display used icon if voucher is used */}                                                                                                                                               
+                          {voucher.usage_status === 'used' && (                                                                                                                                                      
+                            <CheckCircle size={16} color="#6B7280" style={styles.statusIcon} />                                                                                                                      
+                          )}                                                                                                                                                                  
+                        </View>                                                                                                                                                                
+                        <Text style={styles.voucherDiscount}>                                                                                                                                  
+                          {voucher.term_condition}                                                                                                                                             
+                        </Text>                                                                                                                                                                
+                        <View style={styles.validityContainer}>                                                                                                                                
+                          <Clock size={16} color="#6B7280" />                                                                                                                                  
+                          <Text style={styles.validityText}>                                                                                                                                   
+                            Valid until{' '}                                                                                                                                                   
+                            {new Date(voucher.valid_until).toLocaleDateString()}                                                                                                               
+                          </Text>                                                                                                                                                              
+                        </View>                                                                                                                                                                
+                      </View>                                                                                                                                                                  
+                    </TouchableOpacity>                                                                                                                                                        
+                  ))}                                                                                                                                                                          
+                </>                                                                                                                                                                            
+              ) : (                                                                                                                                                                            
+                <View style={styles.emptyStateContainer}>                                                                                                                                      
+                  <Text style={styles.emptyStateText}>                                                                                                                                         
+                    No vouchers available.                                                                                                                                                     
+                  </Text>                                                                                                                                                                      
+                </View>                                                                                                                                                                        
+              )}                                                                                                                                                                               
+            </ScrollView>                                                                                                                                                                      
+          )}                                                                                                                                                                                   
+        </>                                                                                                                                                                                    
+      )}                                                                                                                                                                                       
+    </SafeAreaView>                                                                                                                                                                            
+  );                                                                                                                                                                                           
 }
 
 const styles = StyleSheet.create({
@@ -386,10 +350,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',                                                                                                                                                                      
     alignItems: 'center',                                                                                                                                                                      
     marginBottom: 4, // Add margin previously on voucherTitle                                                                                                                                  
+  },                                                                                                                                                                                       
+  statusIconsContainer: {                                                                                                                                                                      
+    flexDirection: 'row',                                                                                                                                                                      
+    marginLeft: 8, // Provides spacing from the title                                                                                                                                          
   },                                                                                                                                                                                           
   statusIcon: {                                                                                                                                                                                
     // You can add margin here if needed, but marginRight on title works too                                                                                                                   
-    // marginLeft: 8,                                                                                                                                                                          
+    marginLeft: 4,                                                                                                                                                                          
   }, 
   collectButton: {
     backgroundColor: '#8B5CF6',
@@ -426,5 +394,10 @@ const styles = StyleSheet.create({
   disabledVoucherCard: {
     opacity: 0.6,
     backgroundColor: '#F3F4F6', // Lighter background
+  },
+  flexCenter: {                                                                                                                                                                                
+    flex: 1,                                                                                                                                                                                   
+    justifyContent: 'center',                                                                                                                                                                  
+    alignItems: 'center',                                                                                                                                                                      
   },
 });

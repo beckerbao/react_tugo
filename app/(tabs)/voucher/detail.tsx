@@ -95,7 +95,7 @@ export default function VoucherDetailScreen() {
       // Optionally: Navigate back or refresh the list                                                                                                                                         
       // router.back();                                                                                                                                                                        
                                                                                                                                                                                                
-    } catch (error) {                                                                                                                                                                          
+    } catch (error) {                                   
       // --- Error ---                                                                                                                                                                         
       console.error('Claim Voucher Error:', error);                                                                                                                                            
       let errorMessage = 'Failed to claim voucher. Please try again.';                                                                                                                         
