@@ -1,25 +1,43 @@
-import React from 'react';
+// import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Alert } from 'react-native'; // Import Alert                                                                                                                                                                                                                                               import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';                                                                                                 
 import { SafeAreaView } from 'react-native-safe-area-context';                                                                                                                                 
 import { useRouter, useLocalSearchParams } from 'expo-router';                                                                                                                                 
 import { ArrowLeft, Clock, Tag, Info, XCircle, CheckCircle } from 'lucide-react-native';                                                                                                       
-import { UserVoucher } from '@/services/api'; // Import the type                                                                                                                               
+import { UserVoucher, api, ApiError } from '@/services/api'; // Import the type, api object, and ApiError                                                                                      
+import React, { useState } from 'react'; // Import useState                                                                                                                                    
+import { ActivityIndicator } from 'react-native'; // Import ActivityIndicator                                                                                                                  
+import { useAuth } from '@/hooks/useAuth'; // Import useAuth                                                                                                                              
                                                                                                                                                                                                
 export default function VoucherDetailScreen() {                                                                                                                                                
   const router = useRouter();                                                                                                                                                                  
-  const params = useLocalSearchParams();                                                                                                                                                       
+  const params = useLocalSearchParams(); 
+  const { session } = useAuth(); // Get session info 
+  
+  // State for claim action                                                                                                                                                                    
+  const [isClaiming, setIsClaiming] = useState(false);                                                                                                                                         
+  const [claimError, setClaimError] = useState<string | null>(null);                                                                                                                           
+  // Local state to track claim status after successful claim                                                                                                                                  
+  const [localClaimStatus, setLocalClaimStatus] = useState<'claimed' | 'not_claimed' | null>(null); 
                                                                                                                                                                                                
   // Reconstruct the voucher object from params                                                                                                                                                
   // Since we spread the object, params directly contains its properties                                                                                                                       
   // We need to cast the types appropriately                                                                                                                                                   
-  const voucher = params as unknown as UserVoucher;
-  console.log('Voucher Details:', JSON.stringify(voucher, null, 2)); // <--- ADD THIS LINE                                                                                                                                              
+  // Use localClaimStatus if set, otherwise fallback to param status                                                                                                                           
+  const initialVoucher = params as unknown as UserVoucher;                                                                                                                                     
+  const voucher = {                                                                                                                                                                            
+      ...initialVoucher,                                                                                                                                                                       
+      claim_status: localClaimStatus ?? initialVoucher.claim_status,                                                                                                                           
+      // Ensure id is a number for API calls                                                                                                                                                   
+      // Use optional chaining and nullish coalescing for safety                                                                                                                               
+      id: Number(initialVoucher?.id ?? 0)                                                                                                                                                      
+  };                                                                                                                                                                                           
+  // console.log('Voucher Details:', JSON.stringify(voucher, null, 2)); // Keep for debugging if needed                                                                                        
                                                                                                                                                                                                
   // Basic check if essential data is missing (adjust based on required fields)                                                                                                                
-  if (!voucher || !voucher.id || !voucher.voucher_name) {                                                                                                                                      
+  if (!voucher || !voucher.id || isNaN(voucher.id) || voucher.id === 0 || !voucher.voucher_name) { // Check if id is a valid number > 0                                                        
     return (                                                                                                                                                                                   
       <SafeAreaView style={styles.container}>                                                                                                                                                  
-        <View style={styles.header}>                                                                                                                                                           
+        <View style={styles.header}>                                                                                                                                                          
           <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>                                                                                                         
             <ArrowLeft size={24} color="#8B5CF6" />                                                                                                                                            
           </TouchableOpacity>                                                                                                                                                                  
@@ -48,13 +66,53 @@ export default function VoucherDetailScreen() {
       return { text: 'Active', color: '#10B981' };                                                                                                                                             
     }                                                                                                                                                                                          
     return { text: voucher.status, color: '#6B7280' }; // Default fallback                                                                                                                     
-  };
-  // --- Action Handlers (Placeholders) ---                                                                                                                                                    
-  const handleClaimPress = () => {                                                                                                                                                             
-    // TODO: Implement actual claim logic (e.g., API call)                                                                                                                                     
-    Alert.alert('Claim Voucher', `Claiming voucher: ${voucher.code}`);                                                                                                                         
-    // You might want to update the voucher state locally or refetch after success                                                                                                             
-  };
+  };                                                                                                                                                                                           
+                                                                                                                                                                                               
+  // --- Action Handlers ---                                                                                                                                                                   
+  const handleClaimPress = async () => {                                                                                                                                                       
+    if (!session?.user) {                                                                                                                                                                      
+      Alert.alert('Error', 'You need to be logged in to claim a voucher.');                                                                                                                    
+      return;                                                                                                                                                                                  
+    }                                                                                                                                                                                          
+    // Use the potentially modified voucher object which has id as number                                                                                                                      
+    if (!voucher?.id || isNaN(voucher.id) || voucher.id === 0) {                                                                                                                               
+        Alert.alert('Error', 'Voucher ID is missing or invalid.');                                                                                                                             
+        return;                                                                                                                                                                                
+    }                                                                                                                                                                                          
+                                                                                                                                                                                               
+    setIsClaiming(true);                                                                                                                                                            
+    setClaimError(null);                                                                                                                                                                       
+                                                                                                                                                                                               
+    try {                                                                                                                                                                                      
+        console.log('User ID when clicking claim:', session.user.id); // Log auth status 
+        // Call the API function from services/api.ts                                                                                                                                            
+      await api.vouchers.claimVoucher(session.user.id, voucher.id);                                                                                                                            
+                                                                                                                                                                                               
+      // --- Success ---                                                                                                                                                                       
+      Alert.alert('Success', `Voucher ${voucher.code} claimed successfully!`);                                                                                                                 
+      // Update local state to reflect the change immediately                                                                                                                                  
+      setLocalClaimStatus('claimed');                                                                                                                                                          
+      // Optionally: Navigate back or refresh the list                                                                                                                                         
+      // router.back();                                                                                                                                                                        
+                                                                                                                                                                                               
+    } catch (error) {                                                                                                                                                                          
+      // --- Error ---                                                                                                                                                                         
+      console.error('Claim Voucher Error:', error);                                                                                                                                            
+      let errorMessage = 'Failed to claim voucher. Please try again.';                                                                                                                         
+      if (error instanceof ApiError) {                                                                                                                                                         
+        // Use the message from the ApiError if available                                                                                                                                      
+        errorMessage = error.message;                                                                                                                                                          
+      } else if (error instanceof Error) {                                                                                                                                                     
+        errorMessage = error.message;                                                                                                                                                          
+      }                                                                                                                                                                                        
+      setClaimError(errorMessage);                                                                                                                                                             
+      Alert.alert('Claim Failed', errorMessage);                                                                                                                                               
+    } finally {                                                                                                                                                                                
+      // --- Always run ---                                                                                                                                                                    
+      setIsClaiming(false);                                                                                                                                                                    
+    }                                                                                                                                                                                          
+  };                                                                                                                                                                                           
+                                                                                                                                                                                               
   const handleUsePress = () => {                                                                                                                                                               
     // TODO: Implement actual use logic (e.g., navigate to booking/search with voucher applied)                                                                                                
     Alert.alert('Use Voucher', `Using voucher: ${voucher.code}`);                                                                                                                              
@@ -137,14 +195,26 @@ export default function VoucherDetailScreen() {
         </View>                                                                                                                                                    
         {/* --- Action Buttons --- */}                                                                                                                                                         
         <View style={styles.buttonContainer}>                                                                                                                                                  
-          {/* Show "Claim" button if active, not claimed */}                                                                                                                                   
+          {/* Show "Claim" button if active, not claimed (locally or from params) */}                                                                                                          
           {voucher.status === 'active' && voucher.claim_status === 'not_claimed' && (                                                                                                          
-            <TouchableOpacity style={styles.actionButton} onPress={handleClaimPress}>                                                                                                          
-              <Text style={styles.actionButtonText}>Claim Now</Text>                                                                                                                           
-            </TouchableOpacity>                                                                                                                                                                
+            <>                                                                                                                                                                                 
+              <TouchableOpacity                                                                                                                                                                
+                style={[styles.actionButton, isClaiming && styles.actionButtonDisabled]}                                                                                                       
+                onPress={handleClaimPress}                                                                                                                                                     
+                disabled={isClaiming} // Disable button while claiming                                                                                                                         
+              >                                                                                                                                                                                
+                {isClaiming ? (                                                                                                                                                                
+                  <ActivityIndicator size="small" color="#FFFFFF" />                                                                                                                           
+                ) : (                                                                                                                                                                          
+                  <Text style={styles.actionButtonText}>Claim Now</Text>                                                                                                                       
+                )}                                                                                                                                                                             
+              </TouchableOpacity>                                                                                                                                                              
+              {/* Display claim error if any */}                                                                                                                                               
+              {claimError && <Text style={styles.errorTextSmall}>{claimError}</Text>}                                                                                                          
+            </>                                                                                                                                                                                
           )}                                                                                                                                                                                   
                                                                                                                                                                                                
-          {/* Show "Use" button if active, claimed, and not used */}                                                                                                                           
+          {/* Show "Use" button if active, claimed (locally or from params), and not used */}                                                                                                                           
           {voucher.status === 'active' &&                                                                                                                                                      
             voucher.claim_status === 'claimed' &&                                                                                                                                              
             voucher.usage_status === 'not_used' && (                                                                                                                                           
@@ -291,7 +361,17 @@ const styles = StyleSheet.create({
     actionButtonText: {                                                                                                                                                                          
         fontFamily: 'Inter-SemiBold',                                                                                                                                                              
         fontSize: 16,                                                                                                                                                                              
-        color: '#FFFFFF',                                                                                                                                                                          
-    },                                                                                                                                                                                           
-    // --- End New Styles ---                                                                                                                                                                                            
+        color: '#FFFFFF',                                                                                                                                                                      
+    },                                                                                                                                                                                         
+    actionButtonDisabled: {                                                                                                                                                                    
+      backgroundColor: '#A5B4FC', // Lighter purple when disabled                                                                                                                              
+    },                                                                                                                                                                                         
+    errorTextSmall: { // Smaller error text for inline display                                                                                                                                 
+        fontFamily: 'Inter-Regular',                                                                                                                                                           
+        fontSize: 13,                                                                                                                                                                          
+        color: '#EF4444',                                                                                                                                                                      
+        textAlign: 'center',                                                                                                                                                                   
+        marginTop: 8,                                                                                                                                                                          
+    },                                                                                                                                                                                         
+    // --- End New Styles ---                                                                                                                                                                  
 });

@@ -1,17 +1,14 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Clock, LogIn, XCircle, CheckCircle  } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
-// import { useState } from 'react';
-import { useEffect } from 'react'; // Added useEffect 
-import NotificationBell from '@/components/NotificationBell';
-// import PopUpModal from '@/components/PopUpModal';
-import { useAuth } from '@/hooks/useAuth';
+import React, { useEffect, useState, useCallback } from 'react'; // Import useCallback                                                                                                         
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, RefreshControl } from 'react-native';                                                                                 
+import { SafeAreaView } from 'react-native-safe-area-context';                                                                                                                                 
+import { useRouter, useFocusEffect } from 'expo-router'; // Import useFocusEffect                                                                                                              
+import { Tag, XCircle, CheckCircle, Clock, LogIn } from 'lucide-react-native'; // Added Clock, LogIn                                                                                           
+import { useAuth } from '@/hooks/useAuth';                                                                                                                                                     
+import { api, UserVoucher, ApiError, ApiResponse } from '@/services/api'; // Import UserVoucher and ApiError, ApiResponse                                                                      
+import LoadingView from '@/components/LoadingView'; // Import LoadingView                                                                                                                      
+import ErrorView from '@/components/ErrorView'; // Import ErrorView                                                                                                                            
+import NotificationBell from '@/components/NotificationBell'; // Import NotificationBell                                                                                                       
 import { useApi } from '@/hooks/useApi'; // Import useApi
-// Import UserVoucher, UserVouchersResponse is no longer needed
-import { api, UserVoucher } from '@/services/api';
-import LoadingView from '@/components/LoadingView'; // Assuming you have this
-import ErrorView from '@/components/ErrorView'; // Assuming you have this
 
 // const voucherList = [
 //   {
@@ -48,10 +45,11 @@ import ErrorView from '@/components/ErrorView'; // Assuming you have this
 //   },
 // ];
 
-export default function VouchersScreen() {
-  const router = useRouter();
-  const { session, isGuest } = useAuth();
-  const isAuthenticated = !!session?.user && !isGuest;
+export default function VouchersScreen() {                                                                                                                                                     
+  const router = useRouter();                                                                                                                                                                  
+  const { session, isGuest } = useAuth();                                                                                                                                                      
+  const isAuthenticated = !!session?.user && !isGuest;                                                                                                                                         
+  const [refreshing, setRefreshing] = useState(false); // Add this line                                                                                                                        
   // const [vouchers, setVouchers] = useState(voucherList);
   // const [showVoucherModal, setShowVoucherModal] = useState(false);
   // const [selectedVoucherCode, setSelectedVoucherCode] = useState('');
@@ -60,26 +58,50 @@ export default function VouchersScreen() {
   const {                                                                                                                                                                                      
     data: voucherData, // Rename data to avoid conflict                                                                                                                                        
     loading,                                                                                                                                                                                   
-    error,
-    execute: fetchVouchers
-  } = useApi<ApiResponse<UserVoucher[]>>(api.vouchers.getUserVouchers);    // Expect an array of UserVoucher
-
-  // const handleVoucherPress = (id: number) => {
-  //   if (!isAuthenticated) {
-  //     router.push('/login');
-  //     return;
-  //   }
-  //   router.push(`/home/voucher?id=${id}`);
-  // };
-
+    error,                                                                                                                                                                                     
+    execute: fetchVouchers // Keep execute from useApi                                                                                                                                         
+  } = useApi<ApiResponse<UserVoucher[]>>(api.vouchers.getUserVouchers);    // Expect an array of UserVoucher                                                                                   
+                                                                                                                                                                                               
+  // --- Wrap the execution logic in useCallback for useFocusEffect ---                                                                                                                        
+  // Note: useApi's execute function is already stable, but we wrap the call                                                                                                                   
+  // based on session ID for clarity in dependencies.                                                                                                                                          
+  const memoizedFetchVouchers = useCallback(() => {                                                                                                                                            
+    if (session?.user?.id) {                                                                                                                                                                   
+      fetchVouchers(session.user.id);                                                                                                                                                          
+    }                                                                                                                                                                                          
+    // If not authenticated, useApi hook won't execute, matching previous logic                                                                                                                
+  }, [session?.user?.id, fetchVouchers]); // Dependency on session ID and the stable execute function                                                                                          
+                                                                                                                                                                                               
+                                                                                                                                                                                               
   // Fetch vouchers when the user is authenticated and the component mounts                                                                                                                    
   useEffect(() => {                                                                                                                                                                            
     if (isAuthenticated && session?.user?.id) {                                                                                                                                                
-      fetchVouchers(session.user.id);                                                                                                                                                          
+      // Call the memoized wrapper for consistency, although direct call would also work here                                                                                                  
+      memoizedFetchVouchers();                                                                                                                                                                 
     }                                                                                                                                                                                          
-  }, [isAuthenticated, session?.user?.id, fetchVouchers]); // Add dependencies                                                                                                                 
+  }, [isAuthenticated, session?.user?.id, memoizedFetchVouchers]); // Use memoizedFetchVouchers here                                                                                           
                                                                                                                                                                                                
-  const handleVoucherPress = (voucher: UserVoucher) => {                                                                                                                                      
+                                                                                                                                                                                               
+  // --- Refetch data when the screen comes into focus ---                                                                                                                                     
+  useFocusEffect(                                                                                                                                                                              
+    useCallback(() => {                                                                                                                                                                        
+      // Only fetch if we have a user session and are not a guest                                                                                                                              
+      if (isAuthenticated && session?.user?.id) {                                                                                                                                              
+        console.log('Voucher list focused, refetching...');                                                                                                                                    
+        // Call the memoized fetch function                                                                                                                                                    
+        memoizedFetchVouchers();                                                                                                                                                               
+      }                                                                                                                                                                                        
+      // No need for an else block, the initial useEffect handles clearing data on logout                                                                                                      
+                                                                                                                                                                                               
+      // Optional: Return a cleanup function if needed                                                                                                                                         
+      return () => {                                                                                                                                                                           
+        // console.log('Voucher list unfocused');                                                                                                                                              
+      };                                                                                                                                                                                       
+    }, [isAuthenticated, session?.user?.id, memoizedFetchVouchers]) // Dependencies                                                                                                            
+  );                                                                                                                                                                                           
+                                                                                                                                                                                               
+                                                                                                                                                                                               
+  const handleVoucherPress = (voucher: UserVoucher) => {                                                                                                                                       
     console.log('--- handleVoucherPress called ---'); // Log entry                                                                                                                            
     console.log('Is Authenticated:', isAuthenticated); // Log auth status                                                                                                                     
     console.log('Voucher Data:', JSON.stringify(voucher, null, 2)); // Log the voucher data being passed                                                                                      
@@ -178,7 +200,18 @@ console.log('--- End VouchersScreen Render ---');
         />                                                                                                                                                                                     
       </SafeAreaView>                                                                                                                                                                          
     );                                                                                                                                                                                         
-  }  
+  }                                                                                                                                                                                            
+                                                                                                                                                                                               
+  // Handle pull-to-refresh                                                                                                                                                                    
+  const onRefresh = useCallback(async () => {                                                                                                                                                  
+    if (!isAuthenticated || !session?.user?.id) {                                                                                                                                              
+      setRefreshing(false);                                                                                                                                                                    
+      return;                                                                                                                                                                                  
+    }                                                                                                                                                                                          
+    setRefreshing(true);                                                                                                                                                                       
+    await memoizedFetchVouchers(); // Call the memoized fetch wrapper                                                                                                                          
+    setRefreshing(false);                                                                                                                                                                      
+  }, [isAuthenticated, session?.user?.id, memoizedFetchVouchers]); // Update dependencies
 
   return (
     <SafeAreaView style={styles.container}>
