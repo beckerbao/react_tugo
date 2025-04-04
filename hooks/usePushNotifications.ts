@@ -96,7 +96,7 @@ export function usePushNotifications() {
           if (
             initialNotification &&
             isMounted.current &&
-            initialNotification.actionIdentifier === 'DEFAULT_ACTION_IDENTIFIER'
+            initialNotification.actionIdentifier === DEFAULT_ACTION_IDENTIFIER
           ) {
             console.log('[PushNotifications] Handling Initial Notification Tap...'); // Add log
             handleNotificationTap(initialNotification, true);
