@@ -13,8 +13,17 @@ npx expo run:android
 
 NODE_ENV=production eas build --platform android --profile local --local
 
-======= BUILD CHẠY TRÊN THIẾT BỊ THẬT VỚI EXPO ========
-npx expo run:ios --device
+======= BUILD CHẠY TRÊN THIẾT BỊ THẬT VỚI EXPO hoac tren EMULATOR ========
+npx expo run:ios --device >> build thanh app doc lap
+
+======== XOA EMULATOR =====
+xcrun simctl shutdown all
+xcrun simctl erase all
+
+======== EP EXPO CHAY PORT ======
+export RCT_METRO_PORT=19000
+hoac
+RCT_METRO_PORT=19000 npx expo start --clear --tunnel ==> danh cho chay trong Expo
 
 ====================== ANDROID ============
 🛠️ Method 1: Debug APK (no EAS, fastest)

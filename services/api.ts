@@ -1,8 +1,8 @@
 import { Platform } from 'react-native';
 import { PostsResponse } from '@/types/api';
 
-// const API_BASE_URL = 'https://api.review.tugo.com.vn/api/v1';
-const API_BASE_URL = 'http://localhost:9090/api/v1';
+const API_BASE_URL = 'https://api.review.tugo.com.vn/api/v1';
+// const API_BASE_URL = 'http://localhost:9090/api/v1';
 
 // Types for API responses
 export interface ApiResponse<T> {

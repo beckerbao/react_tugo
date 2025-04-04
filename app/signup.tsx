@@ -10,12 +10,13 @@ export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  // const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSignUp = async () => {
-    if (!email || !password || !fullName || !phoneNumber) {
+    // if (!email || !password || !fullName || !phoneNumber) {
+    if (!email || !password || !fullName) {  
       setError('Please fill in all fields');
       return;
     }
@@ -31,7 +32,7 @@ export default function SignUpScreen() {
         options: {
           data: {
             full_name: fullName,
-            phone_number: phoneNumber,
+            // phone_number: phoneNumber,
           },
         },
       });
@@ -72,14 +73,14 @@ export default function SignUpScreen() {
             autoCapitalize="words"
           />
 
-          <Text style={styles.label}>Số điện thoại</Text>
+          {/* <Text style={styles.label}>Số điện thoại</Text>
           <TextInput
             style={styles.input}
             value={phoneNumber}
             onChangeText={setPhoneNumber}
             placeholder="Nhập số điện thoại"
             keyboardType="phone-pad"
-          />
+          /> */}
 
           <Text style={styles.label}>Địa chỉ email</Text>
           <TextInput
@@ -104,10 +105,12 @@ export default function SignUpScreen() {
           <TouchableOpacity 
             style={[
               styles.signUpButton,
-              (!email || !password || !fullName || !phoneNumber || loading) && styles.signUpButtonDisabled
+              // (!email || !password || !fullName || !phoneNumber || loading) && styles.signUpButtonDisabled
+              (!email || !password || !fullName || loading) && styles.signUpButtonDisabled
             ]}
             onPress={handleSignUp}
-            disabled={!email || !password || !fullName || !phoneNumber || loading}
+            disabled={!email || !password || !fullName || loading}
+            // disabled={!email || !password || !fullName || !phoneNumber || loading}
           >
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
