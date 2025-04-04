@@ -51,7 +51,7 @@ export default function RootLayout() {
         <Stack.Screen name="test-notifications" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
       </Stack>
-      <Redirect href="/(tabs)/home" />
+      {/* <Redirect href="/(tabs)/home" /> */}
       <StatusBar style="auto" />
       
       <PermissionModal
