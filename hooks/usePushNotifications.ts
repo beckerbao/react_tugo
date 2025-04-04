@@ -32,7 +32,8 @@ export function usePushNotifications() {
   const isRegistering = useRef(false);
   const isMounted = useRef(true);
   const lastNotificationId = useRef<string | null>(null);
-  const isInitialNotificationHandled = useRef(false);
+  const initialNotificationHandled = useRef(false);
+  const processedNotificationIdentifierRef = useRef<string | null>(null); // Track processed response
 
   useEffect(() => {
     isMounted.current = true;
@@ -43,7 +44,7 @@ export function usePushNotifications() {
 
     const initializeNotifications = async () => {
       try {
-        // Load last notification ID
+        // Load last *received* notification ID (still useful for received listener)
         lastNotificationId.current = await AsyncStorage.getItem(LAST_NOTIFICATION_ID);
         
         await checkPermissionAndToken();
@@ -54,10 +55,10 @@ export function usePushNotifications() {
             notification => {
               console.log('Notification Received:', notification);
               const notificationId = notification.request.identifier;
-              console.log('Notification ID:', notificationId);
+              console.log('Received Notification ID:', notificationId);
               
-              // Prevent duplicate notifications
-              if (notificationId === lastNotificationId.current) {
+              // Prevent processing duplicates *received* while app is open      
+              if (notificationId === lastNotificationId.current) { 
                 return;
               }
 
@@ -81,6 +82,7 @@ export function usePushNotifications() {
               // } else {                                                                                                                                                                        
               //   console.log('[PushNotifications] Listener: isMounted was false, did not call handleNotificationTap');                                                                         
               // }
+              console.log('Notification Response Received via Listener:', response);
               handleNotificationTap(response, false);
               console.log('[PushNotifications] Listener: Called handleNotificationTap (isMounted check removed)');
             }
@@ -88,8 +90,8 @@ export function usePushNotifications() {
         }
 
         // Check for initial notification only once
-        if (!isInitialNotificationHandled.current) {
-          isInitialNotificationHandled.current = true;
+        if (!!initialNotificationHandled.current.current && Platform.OS !== 'web') {
+          initialNotificationHandled.current.current = true;
           const initialNotification = await Notifications.getLastNotificationResponseAsync();
           console.log('Initial Notification Response:', initialNotification);
           // Chỉ xử lý nếu có response và actionIdentifier là 'default'
@@ -98,7 +100,7 @@ export function usePushNotifications() {
             isMounted.current &&
             initialNotification.actionIdentifier === DEFAULT_ACTION_IDENTIFIER
           ) {
-            console.log('[PushNotifications] Handling Initial Notification Tap...'); // Add log
+            console.log('[PushNotifications] Handling Initial Notification Tap via getLastNotificationResponseAsync...'); 
             handleNotificationTap(initialNotification, true);
           } else {
             // console.log(
@@ -231,6 +233,19 @@ export function usePushNotifications() {
       console.log('handleNotificationTap triggered with response:', response);
       console.log('actionIdentifier:', response.actionIdentifier);
 
+      const currentIdentifier = response.notification.request.identifier;    
+      console.log(`handleNotificationTap triggered. Identifier: ${currentIdentifier}, isInitial: ${isInitial}`);
+
+      // --- Prevent processing the same response identifier multiple times ---  
+      if (currentIdentifier === processedNotificationIdentifierRef.current) {               
+        console.log(`Notification response ${currentIdentifier} already processed.          
+        Ignoring.`);                                                                                 
+        return;                                                                             
+      }                                                                                     
+      // --- Mark this identifier as processed ---                                          
+      processedNotificationIdentifierRef.current = currentIdentifier;                       
+      console.log(`Processing notification response ${currentIdentifier}.`);    
+
       // Chỉ xử lý khi người dùng thực sự nhấn vào thông báo
       // if (response.actionIdentifier !== 'default') {
       //   console.log('Not a default tap action, ignoring this notification.');
@@ -238,7 +253,7 @@ export function usePushNotifications() {
       // Only handle the default tap action (tapping the notification body)                                                                                                                   
       if (response.actionIdentifier !== DEFAULT_ACTION_IDENTIFIER) {                                                                                                                          
         console.log(`Ignoring notification tap with actionIdentifier: ${response.actionIdentifier}`);                                                                                         
-        // Optionally handle other custom actions here if you add them later                                                                                                                  
+        // Optionally handle other custom actions here if you add them later                                                                                                                 
         return; // Exit if it's not the default tap
       }
 
@@ -250,9 +265,9 @@ export function usePushNotifications() {
       }
 
       // Add delay only for initial notification
-      if (isInitial) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
+      // if (isInitial) {
+      //   await new Promise(resolve => setTimeout(resolve, 1000));
+      // }
 
       switch (data.type) {
         case 'offer':
@@ -264,7 +279,7 @@ export function usePushNotifications() {
           if (offerId) {                                                                                                                                                                      
             console.log(`Navigating to voucher detail for ID: ${offerId}`);                                                                                                                   
             router.push(`/voucher/detail?id=${offerId}`);                                                                                                                                     
-            // Clear the last notification ID to prevent re-triggering on next open if needed 
+            // Clear the last *received* ID - might not be strictly necessary now but doesn't hurt 
             await AsyncStorage.removeItem(LAST_NOTIFICATION_ID);
           }
           break;

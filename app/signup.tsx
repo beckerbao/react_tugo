@@ -52,6 +52,8 @@ export default function SignUpScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+       {/* Disable the back swipe gesture for this screen */}  
+      {/* <Stack.Screen options={{ gestureEnabled: false }} /> */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Đăng ký</Text>
       </View>
