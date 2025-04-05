@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Bell, Ticket, Plane, Mail, Check } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useNotifications } from '@/hooks/useNotifications';
+import type { Database } from '@/types/supabase'; // Import the Database type
 import LoadingView from '@/components/LoadingView';
 import ErrorView from '@/components/ErrorView';
 import { styles } from '@/styles/notifications';
@@ -18,6 +19,8 @@ const getNotificationIcon = (type: string) => {
       return Mail;
   }
 };
+
+type Notification = Database['public']['Tables']['notifications']['Row']; // Define Notification type
 
 export default function NotificationsScreen() {
   const router = useRouter();
@@ -45,10 +48,53 @@ export default function NotificationsScreen() {
     return <ErrorView message={error} onRetry={refresh} />;
   }
 
-  const handleNotificationPress = async (id: string) => {
-    await markAsRead(id);
+  // const handleNotificationPress = async (id: string) => {
+  //   await markAsRead(id);
     // Handle navigation based on notification type
-  };
+  const handleNotificationPress = async (notification: Notification) => { 
+    // Mark as read first (optimistic UI or wait for success)                                                                                                                                 
+    if (!notification.read) {                                                                                                                                                                 
+      await markAsRead(notification.id);                                                                                                                                                      
+    }
+                                                                                                                                                                                        
+// Handle navigation based on notification type and data                                                                                                                                  
+    try {                                                                                                                                                                                     
+      switch (notification.type) {                                                                                                                                                            
+    case 'offer':                                                                                                                                                                         
+      // Assuming 'offer' notifications relate to vouchers and data contains voucherId                                                                                                    
+      // Adjust 'voucherId' key if it's different in your actual data (e.g., 'offerId')                                                                                                   
+      const voucherId = notification.data?.voucherId; // Use optional chaining                                                                                                            
+      if (voucherId) {                                                                                                                                                                    
+        router.push(`/voucher/detail?id=${voucherId}`);                                                                                                                                   
+      } else {                                                                                                                                                                            
+        console.warn('Offer notification pressed, but no voucherId found in data:', notification.data);                                                                                   
+      }                                                                                                                                                                                   
+      break;                                                                                                                                                                              
+    case 'booking':                                                                                                                                                                       
+      // Assuming booking notifications should link to a tour detail page                                                                                                                 
+      // and data contains tourId. Adjust 'tourId' key if needed.                                                                                                                         
+      const tourId = notification.data?.tourId; // Use optional chaining                                                                                                                  
+      if (tourId) {                                                                                                                                                                       
+        // *** IMPORTANT: Verify this route path matches your actual tour detail screen ***                                                                                               
+        // It might be '/home/tour/[id]' or similar depending on your file structure.                                                                                                     
+        router.push(`/tours/${tourId}`);                                                                                                                                                  
+      } else {                                                                                                                                                                            
+        console.warn('Booking notification pressed, but no tourId found in data:', notification.data);                                                                                    
+      }                                                                                                                                                                                   
+      break;                                                                                                                                                                              
+    case 'system':                                                                                                                                                                        
+      // Decide if system messages should navigate anywhere (e.g., home) or do nothing                                                                                                    
+      console.log('System notification pressed:', notification.title);                                                                                                                    
+      // Example: router.push('/'); // Navigate home                                                                                                                                      
+      break;                                                                                                                                                                              
+      default:                                                                                                                                                                              
+        console.warn('Unhandled notification type:', notification.type);                                                                                                                    
+      }                                                                                                                                                                                       
+      } catch (e) {                                                                                                                                                                             
+        console.error("Navigation error:", e);                                                                                                                                                  
+      // Optionally show an error message to the user                                                                                                                                         
+      }
+    };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -83,7 +129,8 @@ export default function NotificationsScreen() {
                   styles.notificationItem,
                   !notification.read && styles.unreadNotification,
                 ]}
-                onPress={() => handleNotificationPress(notification.id)}
+                // onPress={() => handleNotificationPress(notification.id)}
+                onPress={() => handleNotificationPress(notification)} // Pass the whole notification object 
               >
                 <View style={[
                   styles.iconContainer,

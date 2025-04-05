@@ -69,6 +69,21 @@ export default function ProfileScreen() {
     }
   };
 
+  // --- START: Determine the correct avatar URI ---                                                                                                                                           
+  let avatarUriToShow = DEFAULT_AVATAR; // Default to the default avatar                                                                                                                       
+                                                                                                                                                                                               
+  if (profile?.avatar_url) {                                                                                                                                                                   
+    // Check if the stored URL is a valid HTTP/HTTPS URL                                                                                                                                       
+    const urlString = profile.avatar_url;                                                                                                                                                      
+    if (urlString.startsWith('http://') || urlString.startsWith('https://')) {                                                                                                                 
+      avatarUriToShow = urlString; // Use the valid remote URL                                                                                                                                 
+    } else {                                                                                                                                                                                   
+      // Log if we encounter an invalid URL format (like file://)                                                                                                                              
+      console.warn(`Invalid avatar_url found in profile: ${urlString}. Using default avatar.`);                                                                                                
+    }                                                                                                                                                                                          
+  }                                                                                                                                                                                            
+  // --- END: Determine the correct avatar URI --- 
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>

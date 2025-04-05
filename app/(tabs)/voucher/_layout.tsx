@@ -5,9 +5,10 @@ export default function VoucherLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        animation: 'slide_from_right',
+        // animation: 'slide_from_right',
       }}>
       <Stack.Screen name="index" />
+      <Stack.Screen name="detail" />
     </Stack>
   );
 }

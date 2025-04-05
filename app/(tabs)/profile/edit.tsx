@@ -80,9 +80,9 @@ export default function EditProfileScreen() {
               source={{ uri: formData.avatar_url || DEFAULT_AVATAR }}
               style={styles.avatar}
             />
-            <TouchableOpacity style={styles.cameraButton}>
+            {/* <TouchableOpacity style={styles.cameraButton}>
               <Camera size={20} color="#FFFFFF" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
 
@@ -93,7 +93,7 @@ export default function EditProfileScreen() {
               style={styles.input}
               value={formData.full_name}
               onChangeText={(text) => setFormData({ ...formData, full_name: text })}
-              placeholder="Enter your full name"
+              placeholder="Nhập Họ và Tên"
             />
           </View>
 
@@ -103,7 +103,7 @@ export default function EditProfileScreen() {
               style={styles.input}
               value={formData.phone_number}
               onChangeText={(text) => setFormData({ ...formData, phone_number: text })}
-              placeholder="Enter your phone number"
+              placeholder="Nhập số điện thoại (không bắt buộc)"
               keyboardType="phone-pad"
             />
           </View>
@@ -130,7 +130,7 @@ export default function EditProfileScreen() {
           {loading ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <Text style={styles.saveButtonText}>Save Changes</Text>
+            <Text style={styles.saveButtonText}>Lưu thay đổi</Text>
           )}
         </TouchableOpacity>
       </View>

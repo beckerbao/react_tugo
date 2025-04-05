@@ -13,8 +13,13 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.tugo.travel"
+      "supportsTablet": false,
+      "bundleIdentifier": "com.tugo.travel.vn",
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIDeviceFamily": [1]
+      }
     },
     "android": {
       "package": "com.tugo.travel.vn",
