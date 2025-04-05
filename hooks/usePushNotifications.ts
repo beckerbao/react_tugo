@@ -222,7 +222,7 @@ export function usePushNotifications() {
         await AsyncStorage.setItem(DEVICE_TOKEN_KEY, token);
       }
     } catch (error) {
-      console.error('Error registering device:', error);
+      // console.error('Error registering device:', error);
     } finally {
       isRegistering.current = false;
     }

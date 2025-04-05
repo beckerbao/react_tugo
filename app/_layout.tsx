@@ -5,19 +5,16 @@ import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useFonts, Inter_400Regular, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { SplashScreen } from 'expo-router';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useAuth } from '@/hooks/useAuth';
 import PermissionModal from '@/components/PermissionModal';
 
-// Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useFrameworkReady();
 
-  const { 
-    showPermissionModal, 
-    handleAllowPermission, 
-    handleDenyPermission 
-  } = usePushNotifications();
+  const { showPermissionModal, handleAllowPermission, handleDenyPermission } = usePushNotifications();
+  const { loading: authLoading } = useAuth();
 
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': Inter_400Regular,
@@ -26,14 +23,12 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
-      // Hide the splash screen once fonts are loaded
+    if ((fontsLoaded || fontError) && !authLoading) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError]);
+  }, [fontsLoaded, fontError, authLoading]);
 
-  // Don't render anything until fonts are loaded
-  if (!fontsLoaded && !fontError) {
+  if ((!fontsLoaded && !fontError) || authLoading) {
     return null;
   }
 
@@ -51,9 +46,9 @@ export default function RootLayout() {
         <Stack.Screen name="test-notifications" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
       </Stack>
-      {/* <Redirect href="/(tabs)/home" /> */}
+
       <StatusBar style="auto" />
-      
+
       <PermissionModal
         visible={showPermissionModal}
         onAllow={handleAllowPermission}
