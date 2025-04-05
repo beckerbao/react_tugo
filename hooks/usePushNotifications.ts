@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+import { NotificationResponse } from 'expo-notifications';
 import { DEFAULT_ACTION_IDENTIFIER } from 'expo-notifications'; // Import the constant
 import { Platform } from 'react-native';
 import { supabase } from '@/services/supabase';
@@ -228,93 +229,65 @@ export function usePushNotifications() {
     }
   };
 
-  const handleNotificationTap = async (response: Notifications.NotificationResponse, isInitial: boolean) => {
+  const handleNotificationTap = async (
+    response: NotificationResponse | null,
+    isInitial: boolean = false
+  ) => {
     try {
-      console.log('handleNotificationTap triggered with response:', response);
-      console.log('actionIdentifier:', response.actionIdentifier);
-
-      const currentIdentifier = response.notification.request.identifier;    
-      console.log(`handleNotificationTap triggered. Identifier: ${currentIdentifier}, isInitial: ${isInitial}`);
-
-      // --- Prevent processing the same response identifier multiple times ---  
-      if (currentIdentifier === processedNotificationIdentifierRef.current) {               
-        console.log(`Notification response ${currentIdentifier} already processed.          
-        Ignoring.`);                                                                                 
-        return;                                                                             
-      }                                                                                     
-      // --- Mark this identifier as processed ---                                          
-      processedNotificationIdentifierRef.current = currentIdentifier;                       
-      console.log(`Processing notification response ${currentIdentifier}.`);    
-
-      // Chỉ xử lý khi người dùng thực sự nhấn vào thông báo
-      // if (response.actionIdentifier !== 'default') {
-      //   console.log('Not a default tap action, ignoring this notification.');
-      //   return;
-      // Only handle the default tap action (tapping the notification body)                                                                                                                   
-      if (response.actionIdentifier !== DEFAULT_ACTION_IDENTIFIER) {                                                                                                                          
-        console.log(`Ignoring notification tap with actionIdentifier: ${response.actionIdentifier}`);                                                                                         
-        // Optionally handle other custom actions here if you add them later                                                                                                                 
-        return; // Exit if it's not the default tap
-      }
-
-      const data = response.notification.request.content.data;
-      console.log('Notification data payload:', data);
-
-      if (!data || !data.type || !isMounted.current) {
+      const data = response?.notification.request.content.data;
+      if (!data || !data.type) return;
+  
+      const notificationId = response?.notification.request.identifier;
+      const alreadyHandledId = await AsyncStorage.getItem(LAST_NOTIFICATION_ID);
+  
+      if (alreadyHandledId === notificationId) {
+        console.log('[handleNotificationTap] Skipping duplicate notification tap');
         return;
       }
-
-      // Add delay only for initial notification
-      // if (isInitial) {
-      //   await new Promise(resolve => setTimeout(resolve, 1000));
-      // }
-
+  
+      console.log('[handleNotificationTap] preparing to route...');
+  
       switch (data.type) {
         case 'offer':
-          // if (data.offerId) {
-          //   router.push(`/home/voucher?id=${data.offerId}`);
-          //   // Xóa thông tin của notification sau khi xử lý xong
-          // Use offerId or voucherId based on what you send in the push payload                                                                                                              
-          const offerId = data.offerId || data.voucherId;                                                                                                                                     
-          if (offerId) {                                                                                                                                                                      
-            console.log(`Navigating to voucher detail for ID: ${offerId}`);                                                                                                                   
-            router.push(`/voucher/detail?id=${offerId}`);                                                                                                                                     
-            // Clear the last *received* ID - might not be strictly necessary now but doesn't hurt 
+          const offerId = data.offerId || data.voucherId;
+          if (offerId) {
+            console.log(`[handleNotificationTap] Navigating to /(tabs)/voucher/detail?id=${offerId}`);
+            router.push(`/(tabs)/voucher/detail?id=${offerId}`);
             await AsyncStorage.removeItem(LAST_NOTIFICATION_ID);
           }
           break;
+  
         case 'booking':
-          // if (data.bookingId) {
-            // Use bookingId or tourId based on what you send                                                                                                                                   
-          const tourId = data.tourId; // Assuming you send tourId                                                                                                                             
-          if (tourId) {                                                                                                                                                                       
-              console.log(`Navigating to tour detail for ID: ${tourId}`);                                                                                                                       
-              // *** IMPORTANT: Verify this route path matches your actual tour detail screen ***                                                                                               
-              router.push(`/home/tour?id=${tourId}`); // Adjust path if needed                                                                                                                         
-              // Clear the last notification ID                                                                                                                                                 
-              await AsyncStorage.removeItem(LAST_NOTIFICATION_ID);                                                                                                                              
-          } else if (data.bookingId) { // Fallback or alternative logic                                                                                                                       
-                console.log(`Navigating to booking history for booking ID: ${data.bookingId}`);   
-                router.push(`/profile/history`);
-                // Xóa thông tin của notification sau khi xử lý xong
-                await AsyncStorage.removeItem(LAST_NOTIFICATION_ID);
-          } else {                                                                                                                                                                            
-            console.warn('Booking notification tapped, but no tourId or bookingId found in data:', data);                                                                                     
-          } 
-          break;
+            console.log('[handleNotificationTap] booking payload:', data);
+            const tourId = String(data.tourId ?? '');
+            console.log('[handleNotificationTap] tourId (normalized):', tourId);
+          
+            if (tourId && tourId !== '') {
+              const url = `/(tabs)/home/tour?id=${tourId}`;
+              console.log(`[handleNotificationTap] Navigating to ${url}`);
+              router.push(url);
+              await AsyncStorage.removeItem(LAST_NOTIFICATION_ID);
+            } else {
+              console.warn('[handleNotificationTap] No tourId found in data');
+            }
+            break;
+  
         case 'system':
-          console.log('System notification tapped, navigating to notifications screen'); 
-          router.push('/notifications');
-          // Xóa thông tin của notification sau khi xử lý xong
+          console.log('[handleNotificationTap] Navigating to /(tabs)/notifications');
+          router.push(`/notifications`);
           await AsyncStorage.removeItem(LAST_NOTIFICATION_ID);
           break;
-        default:                                                                                                                                                                              
-          console.warn('Unhandled notification type in push notification tap:', data.type); 
+  
+        default:
+          console.warn('[handleNotificationTap] Unknown type:', data.type);
       }
+  
+      await AsyncStorage.setItem(LAST_NOTIFICATION_ID, notificationId || '');
     } catch (error) {
-      console.error('Error handling notification tap:', error);
+      console.error('[handleNotificationTap] Error handling notification tap:', error);
     }
   };
+  
 
   const sendPushNotification = async (expoPushToken: string, title: string, body: string, data = {}) => {
     if (Platform.OS === 'web') {
