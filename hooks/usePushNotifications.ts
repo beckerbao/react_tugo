@@ -90,8 +90,8 @@ export function usePushNotifications() {
         }
 
         // Check for initial notification only once
-        if (!!initialNotificationHandled.current.current && Platform.OS !== 'web') {
-          initialNotificationHandled.current.current = true;
+        if (!!initialNotificationHandled.current && Platform.OS !== 'web') {
+          initialNotificationHandled.current = true;
           const initialNotification = await Notifications.getLastNotificationResponseAsync();
           console.log('Initial Notification Response:', initialNotification);
           // Chỉ xử lý nếu có response và actionIdentifier là 'default'
