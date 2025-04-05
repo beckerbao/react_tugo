@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Platform, ActivityIndicator, KeyboardAvoidingView, ScrollView } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Calendar } from 'lucide-react-native';
@@ -57,6 +57,10 @@ export default function BookingScreen() {
   };
 
   return (
+    <KeyboardAvoidingView                                                                        
+  style={{ flex: 1 }}                                                                        
+  behavior={Platform.OS === 'ios' ? 'padding' : 'height'}                                    
+  keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
@@ -68,7 +72,9 @@ export default function BookingScreen() {
 
       <View style={styles.content}>
         {error && <Text style={styles.errorText}>{error}</Text>}
-
+        <ScrollView                                                                              
+            contentContainerStyle={{ flexGrow: 1, padding: 16 }}                                   
+            keyboardShouldPersistTaps="handled">
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Tour đã chọn</Text>
           <View style={styles.tourCard}>
@@ -130,6 +136,7 @@ export default function BookingScreen() {
               />
           )}
         </View>
+        </ScrollView>
       </View>
 
       <View style={styles.footer}>
@@ -152,5 +159,6 @@ export default function BookingScreen() {
         type="booking"
       />
     </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
