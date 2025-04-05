@@ -111,30 +111,6 @@ export default function BookingScreen() {
             <Calendar size={20} color="#6B7280" />
           </TouchableOpacity>
 
-          {showDatePicker && (
-            Platform.OS === 'web'
-            ? <TextInput
-                style={styles.input}
-                value={formData.departureDate.toISOString().split('T')[0]}
-                onChangeText={(value) => {
-                  const date = new Date(value);
-                  setShowDatePicker(false);
-                  setFormData({ ...formData, departureDate: date });
-                }}
-                keyboardType="numeric"
-                placeholder="YYYY‑MM‑DD"
-              />
-            : <DateTimePicker
-                value={formData.departureDate}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
-                minimumDate={new Date()}
-                onChange={(_, date) => {
-                  setShowDatePicker(false);
-                  if (date) setFormData({ ...formData, departureDate: date });
-                }}
-              />
-          )}
         </View>
         </ScrollView>
       </View>

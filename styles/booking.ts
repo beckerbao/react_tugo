@@ -122,4 +122,13 @@ export const styles = StyleSheet.create({
       fontSize: 16,
       color: '#FFFFFF',
     },
+    datePickerContainer: {
+      position: 'absolute',
+      bottom: 0,
+      width: '100%',
+      backgroundColor: 'white',
+      padding: 16,
+      borderTopWidth: 1,
+      borderTopColor: '#E5E7EB',
+    },
   });
