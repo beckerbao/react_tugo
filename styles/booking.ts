@@ -5,6 +5,13 @@ export const styles = StyleSheet.create({
       flex: 1,
       backgroundColor: '#FFFFFF',
     },
+    scrollContent: {                                                                           
+      flexGrow: 1, // Allow ScrollView content to grow                                         
+      padding: 16,                                                                             
+    },
+    formSection: {                                                                             
+      marginBottom: 20,                                                                        
+    },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',

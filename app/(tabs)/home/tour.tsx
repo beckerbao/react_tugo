@@ -185,11 +185,11 @@ export default function TourScreen() {
 
       <View style={styles.footer}>
         <View style={styles.priceContainer}>
-          <Text style={styles.priceLabel}>Price per person</Text>
+          <Text style={styles.priceLabel}>Giá 1 khách</Text>
           <Text style={styles.price}>{formatPrice(tour.price)} đ</Text>
         </View>
         <TouchableOpacity style={styles.bookButton} onPress={handleBookNow}>
-          <Text style={styles.bookButtonText}>Book Now</Text>
+          <Text style={styles.bookButtonText}>Đặt lịch</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

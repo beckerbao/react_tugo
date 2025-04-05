@@ -5,6 +5,10 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
+  scrollContainer: {                                                                      
+    flexGrow: 1,                                                                          
+    justifyContent: 'center',                                                             
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'center',

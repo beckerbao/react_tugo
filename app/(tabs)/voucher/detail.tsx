@@ -250,7 +250,7 @@ export default function VoucherDetailScreen() {
                     {isClaiming ? (                                                                                                                                                              
                         <ActivityIndicator size="small" color="#FFFFFF" />                                                                                                                         
                     ) : (                                                                                                                                                                        
-                        <Text style={styles.actionButtonText}>Claim Now</Text>                                                                                                                     
+                        <Text style={styles.actionButtonText}>Nhận voucher</Text>                                                                                                                     
                     )}                                                                                                                                                                           
                     </TouchableOpacity>                                                                                                                                                            
                     {claimError && (                                                                                                                                                               
@@ -273,7 +273,7 @@ export default function VoucherDetailScreen() {
                     {isUsing ? (                                                                                                                                                                           
                     <ActivityIndicator size="small" color="#FFFFFF" />                                                                                                                                   
                     ) : (                                                                                                                                                                                  
-                    <Text style={styles.actionButtonText}>Use Now</Text>                                                                                                                                 
+                    <Text style={styles.actionButtonText}>Xác nhận sử dụng</Text>                                                                                                                                 
                     )}                                                                                                                                                                                     
                 </TouchableOpacity>                                                                                                                                                                      
             )}                                                                                                                                             
