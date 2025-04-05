@@ -137,6 +137,9 @@ export default function BookingScreen() {
                   setShowDatePicker(false);
                   if (date) setFormData({ ...formData, departureDate: date });
                 }}
+                themeVariant="light"
+                style={styles.datePicker}
+                textColor="#000000"
               />
             </View>
         )}

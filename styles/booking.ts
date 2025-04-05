@@ -126,9 +126,13 @@ export const styles = StyleSheet.create({
       position: 'absolute',
       bottom: 0,
       width: '100%',
-      backgroundColor: 'white',
+      backgroundColor: '#FFFFFF',
       padding: 16,
       borderTopWidth: 1,
       borderTopColor: '#E5E7EB',
+      zIndex: 1000,
+    },
+    datePicker: {
+      backgroundColor: '#FFFFFF',
     },
   });
