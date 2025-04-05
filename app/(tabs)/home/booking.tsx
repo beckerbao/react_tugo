@@ -1,14 +1,19 @@
 import { useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Platform, ActivityIndicator, KeyboardAvoidingView, ScrollView } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import 'intl';
-import 'intl/locale-data/jsonp/vi';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Calendar } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { styles } from '@/styles/booking';
 import PopUpModal from '@/components/PopUpModal';
 import { api } from '@/services/api';
+
+const formatVietnameseDate = (date: Date) => {
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+  return `${day} Tháng ${month}, ${year}`;
+};
 
 export default function BookingScreen() {
   const router = useRouter();
@@ -124,7 +129,7 @@ export default function BookingScreen() {
             }
           }}>
             <Text style={styles.dateInputText}>
-              {formData.departureDate.getDate()} Tháng {formData.departureDate.getMonth() + 1}, {formData.departureDate.getFullYear()}
+              {formatVietnameseDate(formData.departureDate)}
             </Text>
             <Calendar size={20} color="#6B7280" />
           </TouchableOpacity>
@@ -136,7 +141,7 @@ export default function BookingScreen() {
           Platform.OS === 'web'
           ? <TextInput
               style={[styles.input, { marginTop: 16 }]}
-              value={formData.departureDate.toISOString().split('T')[0]}
+              value={formatVietnameseDate(formData.departureDate)}
               onChangeText={(value) => {
                 const date = new Date(value);
                 setShowDatePicker(false);
