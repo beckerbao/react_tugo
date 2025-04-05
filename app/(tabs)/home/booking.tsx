@@ -1,12 +1,19 @@
-import { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Platform, ActivityIndicator } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { useState, useMemo } from 'react';
+import { View, Text, TouchableOpacity, TextInput, Platform, ActivityIndicator, KeyboardAvoidingView, ScrollView } from 'react-native';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Calendar } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { styles } from '@/styles/booking';
 import PopUpModal from '@/components/PopUpModal';
 import { api } from '@/services/api';
+
+const formatVietnameseDate = (date: Date) => {
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+  return `${day} Tháng ${month}, ${year}`;
+};
 
 export default function BookingScreen() {
   const router = useRouter();
@@ -57,6 +64,10 @@ export default function BookingScreen() {
   };
 
   return (
+    <KeyboardAvoidingView                                                                        
+  style={{ flex: 1 }}                                                                        
+  behavior={Platform.OS === 'ios' ? 'padding' : 'height'}                                    
+  keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
@@ -68,7 +79,9 @@ export default function BookingScreen() {
 
       <View style={styles.content}>
         {error && <Text style={styles.errorText}>{error}</Text>}
-
+        <ScrollView                                                                              
+            contentContainerStyle={{ flexGrow: 1, padding: 16 }}                                   
+            keyboardShouldPersistTaps="handled">
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Tour đã chọn</Text>
           <View style={styles.tourCard}>
@@ -100,36 +113,65 @@ export default function BookingScreen() {
 
         <View style={styles.section}>
           <Text style={styles.label}>Thời gian muốn đi</Text>
-          <TouchableOpacity style={styles.dateInput} onPress={() => setShowDatePicker(true)}>
-            <Text style={styles.dateInputText}>{formData.departureDate.toLocaleDateString()}</Text>
+          <TouchableOpacity style={styles.dateInput} onPress={() => {
+            if (Platform.OS === 'android') {
+              DateTimePickerAndroid.open({
+                value: formData.departureDate,
+                onChange: (_, date) => {
+                  if (date) setFormData({ ...formData, departureDate: date });
+                },
+                mode: 'date',
+                minimumDate: new Date(),
+                locale: 'vi',
+              });
+            } else {
+              setShowDatePicker(true);
+            }
+          }}>
+            <Text style={styles.dateInputText}>
+              {formatVietnameseDate(formData.departureDate)}
+            </Text>
             <Calendar size={20} color="#6B7280" />
           </TouchableOpacity>
 
-          {showDatePicker && (
-            Platform.OS === 'web'
-            ? <TextInput
-                style={styles.input}
-                value={formData.departureDate.toISOString().split('T')[0]}
-                onChangeText={(value) => {
-                  const date = new Date(value);
-                  setShowDatePicker(false);
-                  setFormData({ ...formData, departureDate: date });
-                }}
-                keyboardType="numeric"
-                placeholder="YYYY‑MM‑DD"
-              />
-            : <DateTimePicker
+        </View>
+        </ScrollView>
+        {/* Move date picker outside ScrollView */}
+        {showDatePicker && (
+          Platform.OS === 'web'
+          ? <TextInput
+              style={[styles.input, { marginTop: 16 }]}
+              value={formatVietnameseDate(formData.departureDate)}
+              onChangeText={(value) => {
+                const date = new Date(value);
+                setShowDatePicker(false);
+                setFormData({ ...formData, departureDate: date });
+              }}
+              keyboardType="numeric"
+              placeholder="YYYY‑MM‑DD"
+            />
+          : <View style={styles.datePickerContainer}>
+              <DateTimePicker
                 value={formData.departureDate}
                 mode="date"
                 display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                locale="vi-VN"
                 minimumDate={new Date()}
                 onChange={(_, date) => {
-                  setShowDatePicker(false);
                   if (date) setFormData({ ...formData, departureDate: date });
                 }}
+                themeVariant="light"
+                style={styles.datePicker}
+                textColor="#000000"
               />
-          )}
-        </View>
+              <TouchableOpacity 
+                style={styles.doneButton}
+                onPress={() => setShowDatePicker(false)}
+              >
+                <Text style={styles.doneButtonText}>Xong</Text>
+              </TouchableOpacity>
+            </View>
+        )}
       </View>
 
       <View style={styles.footer}>
@@ -152,5 +194,6 @@ export default function BookingScreen() {
         type="booking"
       />
     </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/services/supabase';
@@ -51,6 +51,10 @@ export default function SignUpScreen() {
   };
 
   return (
+    <KeyboardAvoidingView                                                                        
+  style={{ flex: 1 }}                                                                        
+  behavior={Platform.OS === 'ios' ? 'padding' : 'height'}                                    
+  keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
     <SafeAreaView style={styles.container}>
        {/* Disable the back swipe gesture for this screen */}  
       {/* <Stack.Screen options={{ gestureEnabled: false }} /> */}
@@ -60,7 +64,9 @@ export default function SignUpScreen() {
 
       <View style={styles.content}>
         <Text style={styles.welcomeText}>Tạo tài khoản</Text>
-
+        <ScrollView                                                                              
+            contentContainerStyle={{ flexGrow: 1, padding: 16 }}                                   
+            keyboardShouldPersistTaps="handled">
         <View style={styles.form}>
           {error ? (
             <Text style={styles.errorText}>{error}</Text>
@@ -128,7 +134,9 @@ export default function SignUpScreen() {
             <Text style={styles.loginButtonText}>Bạn đã có tài khoản? Hãy đăng nhập</Text>
           </TouchableOpacity>
         </View>
+        </ScrollView>
       </View>
     </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }

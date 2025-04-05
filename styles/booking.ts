@@ -5,6 +5,10 @@ export const styles = StyleSheet.create({
       flex: 1,
       backgroundColor: '#FFFFFF',
     },
+    scrollContent: {                                                                           
+      flexGrow: 1, // Allow ScrollView content to grow                                         
+      padding: 16,                                                                             
+    },    
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -117,5 +121,30 @@ export const styles = StyleSheet.create({
       fontFamily: 'Inter-SemiBold',
       fontSize: 16,
       color: '#FFFFFF',
+    },
+    datePickerContainer: {
+      position: 'absolute',
+      bottom: 0,
+      width: '100%',
+      backgroundColor: '#FFFFFF',
+      padding: 16,
+      borderTopWidth: 1,
+      borderTopColor: '#E5E7EB',
+      zIndex: 1000,
+    },
+    datePicker: {
+      backgroundColor: '#FFFFFF',
+    },
+    doneButton: {
+      backgroundColor: '#8B5CF6',
+      padding: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginTop: 16,
+    },
+    doneButtonText: {
+      color: '#FFFFFF',
+      fontFamily: 'Inter-SemiBold',
+      fontSize: 16,
     },
   });
