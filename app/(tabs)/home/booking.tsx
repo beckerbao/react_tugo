@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Platform, ActivityIndicator, KeyboardAvoidingView, ScrollView } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import 'intl';
+import 'intl/locale-data/jsonp/vi';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Calendar } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -106,8 +108,24 @@ export default function BookingScreen() {
 
         <View style={styles.section}>
           <Text style={styles.label}>Thời gian muốn đi</Text>
-          <TouchableOpacity style={styles.dateInput} onPress={() => setShowDatePicker(true)}>
-            <Text style={styles.dateInputText}>{formData.departureDate.toLocaleDateString()}</Text>
+          <TouchableOpacity style={styles.dateInput} onPress={() => {
+            if (Platform.OS === 'android') {
+              DateTimePickerAndroid.open({
+                value: formData.departureDate,
+                onChange: (_, date) => {
+                  if (date) setFormData({ ...formData, departureDate: date });
+                },
+                mode: 'date',
+                minimumDate: new Date(),
+                locale: 'vi',
+              });
+            } else {
+              setShowDatePicker(true);
+            }
+          }}>
+            <Text style={styles.dateInputText}>
+              {formData.departureDate.getDate()} Tháng {formData.departureDate.getMonth() + 1}, {formData.departureDate.getFullYear()}
+            </Text>
             <Calendar size={20} color="#6B7280" />
           </TouchableOpacity>
 
@@ -132,6 +150,7 @@ export default function BookingScreen() {
                 value={formData.departureDate}
                 mode="date"
                 display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                locale="vi-VN"
                 minimumDate={new Date()}
                 onChange={(_, date) => {
                   if (date) setFormData({ ...formData, departureDate: date });
