@@ -135,4 +135,16 @@ export const styles = StyleSheet.create({
     datePicker: {
       backgroundColor: '#FFFFFF',
     },
+    doneButton: {
+      backgroundColor: '#8B5CF6',
+      padding: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginTop: 16,
+    },
+    doneButtonText: {
+      color: '#FFFFFF',
+      fontFamily: 'Inter-SemiBold',
+      fontSize: 16,
+    },
   });

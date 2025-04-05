@@ -134,13 +134,18 @@ export default function BookingScreen() {
                 display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
                 minimumDate={new Date()}
                 onChange={(_, date) => {
-                  setShowDatePicker(false);
                   if (date) setFormData({ ...formData, departureDate: date });
                 }}
                 themeVariant="light"
                 style={styles.datePicker}
                 textColor="#000000"
               />
+              <TouchableOpacity 
+                style={styles.doneButton}
+                onPress={() => setShowDatePicker(false)}
+              >
+                <Text style={styles.doneButtonText}>Xong</Text>
+              </TouchableOpacity>
             </View>
         )}
       </View>
