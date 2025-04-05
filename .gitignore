@@ -38,3 +38,6 @@ tugo-1190-28b54ed0330a.json
 google-service-account.json
 android
 ios
+.aider.chat.history.md
+.aider.tags.cache.v4/cache.db
+.aider.input.history
