@@ -113,6 +113,33 @@ export default function BookingScreen() {
 
         </View>
         </ScrollView>
+        {/* Move date picker outside ScrollView */}
+        {showDatePicker && (
+          Platform.OS === 'web'
+          ? <TextInput
+              style={[styles.input, { marginTop: 16 }]}
+              value={formData.departureDate.toISOString().split('T')[0]}
+              onChangeText={(value) => {
+                const date = new Date(value);
+                setShowDatePicker(false);
+                setFormData({ ...formData, departureDate: date });
+              }}
+              keyboardType="numeric"
+              placeholder="YYYY‑MM‑DD"
+            />
+          : <View style={styles.datePickerContainer}>
+              <DateTimePicker
+                value={formData.departureDate}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                minimumDate={new Date()}
+                onChange={(_, date) => {
+                  setShowDatePicker(false);
+                  if (date) setFormData({ ...formData, departureDate: date });
+                }}
+              />
+            </View>
+        )}
       </View>
 
       <View style={styles.footer}>
