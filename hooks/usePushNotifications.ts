@@ -24,10 +24,31 @@ const DEVICE_TOKEN_KEY = '@device_token';
 // const LAST_NOTIFICATION_ID = '@last_notification_id';
 // const processingNotificationId = useRef<string | null>(null);
 
-let notificationListenerInstance: Notifications.Subscription | null = null;
+// let notificationListenerInstance: Notifications.Subscription | null = null;
 let responseListenerInstance: Notifications.Subscription | null = null;
+let hasInitialized = false;
 
 export function usePushNotifications() {
+  if (hasInitialized) {
+    console.log('[usePushNotifications] already initialized — skip setup');
+
+    // Trả về giá trị rỗng (dummy) nếu hook bị gọi lại
+    return {
+      expoPushToken: null,
+      notification: null,
+      setNotification: () => {},
+      showPermissionModal: false,
+      handleAllowPermission: () => {},
+      handleDenyPermission: () => {},
+      permissionWasDenied: false,
+      getAndRegisterDeviceToken: async () => {},
+    };
+  }
+
+  hasInitialized = true;
+  
+  console.log('[usePushNotifications] mounted');
+
   const [expoPushToken, setExpoPushToken] = useState<string | undefined>();
   const [notification, setNotification] = useState<Notifications.Notification>();
   const [showPermissionModal, setShowPermissionModal] = useState(false);
@@ -37,6 +58,10 @@ export function usePushNotifications() {
   const initialNotificationHandled = useRef(false);
   // const processedNotificationIdentifierRef = useRef<string | null>(null); // Track processed response
   const hasSentToken = useRef(false); // tránh gửi nhiều lần trong cùng session
+
+  const notificationListenerRef = useRef<Notifications.Subscription | null>(null);
+  const responseListenerRef = useRef<Notifications.Subscription | null>(null);
+
 
   useEffect(() => {
     isMounted.current = true;
@@ -53,11 +78,13 @@ export function usePushNotifications() {
         await checkPermissionAndToken();
 
         // Only set up listeners if they don't exist
-        if (!notificationListenerInstance) {
-          notificationListenerInstance = Notifications.addNotificationReceivedListener(
-            notification => {              
-              const notificationId = notification.request.identifier;
-              
+        // if (!notificationListenerInstance) {
+        //   notificationListenerInstance = Notifications.addNotificationReceivedListener(
+            // notification => {              
+        if (!notificationListenerRef.current) {
+          notificationListenerRef.current = Notifications.addNotificationReceivedListener(notification => {
+            const notificationId = notification.request.identifier;
+
               console.log('Notification Received:', notification);
               console.log('Received Notification ID:', notificationId);
               
@@ -75,8 +102,11 @@ export function usePushNotifications() {
           );
         }
 
-        if (!responseListenerInstance) {
-          responseListenerInstance = Notifications.addNotificationResponseReceivedListener(
+        // if (!responseListenerInstance) {
+        //   responseListenerInstance = Notifications.addNotificationResponseReceivedListener(
+        //     response => {
+        if (!responseListenerRef.current) {
+          responseListenerRef.current = Notifications.addNotificationResponseReceivedListener(
             response => {
               console.log('Notification Response Received:', response);
               console.log('Action Identifier:', response.actionIdentifier);
@@ -124,6 +154,12 @@ export function usePushNotifications() {
 
     return () => {
       isMounted.current = false;
+      // Gỡ listener đúng cách
+      notificationListenerRef.current?.remove();
+      notificationListenerRef.current = null;
+
+      responseListenerRef.current?.remove();
+      responseListenerRef.current = null;
     };
   }, []);
 
