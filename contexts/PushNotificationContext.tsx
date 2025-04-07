@@ -1,5 +1,6 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { usePushNotifications } from '../hooks/usePushNotifications';
+import PermissionModal from '@/components/PermissionModal'; // ✅ thêm import
 
 export type PushNotificationContextType = ReturnType<typeof usePushNotifications>;
 
@@ -14,8 +15,19 @@ export const PushNotificationProvider = ({ children }: PushNotificationProviderP
   const pushNotification = usePushNotifications();
 
   return (
+    // <PushNotificationContext.Provider value={pushNotification}>
+    //   {children}
+    // </PushNotificationContext.Provider>
     <PushNotificationContext.Provider value={pushNotification}>
       {children}
+
+      {/* ✅ Đưa PermissionModal vào đây để modal chỉ xuất hiện đúng nơi */}
+      <PermissionModal
+        visible={pushNotification.showPermissionModal}
+        isDenied={pushNotification.permissionWasDenied}
+        onAllow={pushNotification.handleAllowPermission}
+        onDeny={pushNotification.handleDenyPermission}
+      />
     </PushNotificationContext.Provider>
   );
 };
