@@ -15,9 +15,11 @@ export function useAuth() {
   const { expoPushToken } = usePushNotificationContext();
 
   useEffect(() => {
-    AsyncStorage.getItem('@supabase.auth.token').then(val => {
-      console.log('📦 Saved Supabase token:', val);
-    });
+    if (typeof window !== 'undefined') {
+      AsyncStorage.getItem('@supabase.auth.token').then(val => {
+        console.log('📦 Saved Supabase token:', val);
+      });
+    }
 
     console.log('[Auth] Initializing...');
     const { data: { subscription } } = supabase.auth.onAuthStateChange(

@@ -64,6 +64,8 @@ export function usePushNotifications() {
 
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     isMounted.current = true;
     
     if (Platform.OS === 'web') {
@@ -233,6 +235,8 @@ export function usePushNotifications() {
   };
 
   const registerDevice = async (token: string, userId?: string) => {
+    if (typeof window === 'undefined') return;
+
     if (isRegistering.current || !isMounted.current) {
       return;
     }
@@ -268,154 +272,85 @@ export function usePushNotifications() {
       isRegistering.current = false;
     }
   };
-
-  // const handleNotificationTap = async (
-  //   response: NotificationResponse | null,
-  //   isInitial: boolean = false
-  // ) => {
-  //   const notificationId = response?.notification.request.identifier;
-
-  //   try {
-  //     const data = response?.notification.request.content.data;
-  //     if (!data || !data.type) {
-  //       console.warn('[handleNotificationTap] Missing data or type');
-  //       return;
-  //     }
-        
-  //     const alreadyHandledId = await AsyncStorage.getItem(LAST_NOTIFICATION_ID);
-  //     //log alreadyHandledId
-  //     console.log('[handleNotificationTap] alreadyHandledId:', alreadyHandledId);
-
-  //     if (alreadyHandledId === notificationId) {
-  //       console.log('[handleNotificationTap] Skipping duplicate notification tap', notificationId);
-  //       return;
-  //     }
   
-  //     console.log('[handleNotificationTap] preparing to route...');
-  
-  //     switch (data.type) {
-  //       case 'offer':
-  //         const offerId = data.offerId || data.voucherId;
-  //         if (offerId) {
-  //           console.log(`[handleNotificationTap] Navigating to /(tabs)/voucher/detail?id=${offerId}`);
-  //           router.push(`/(tabs)/voucher/detail?id=${offerId}`);
-  //           // await AsyncStorage.removeItem(LAST_NOTIFICATION_ID);
-  //         }
-  //         break;
-  
-  //       case 'booking':
-  //           console.log('[handleNotificationTap] booking payload:', data);
-  //           const tourId = String(data.tourId ?? '');
-  //           console.log('[handleNotificationTap] tourId (normalized):', tourId);
-          
-  //           if (tourId && tourId !== '') {
-  //             const url = `/(tabs)/home/tour?id=${tourId}`;
-  //             console.log(`[handleNotificationTap] Navigating to ${url}`);
-  //             router.push(url);
-  //             // await AsyncStorage.removeItem(LAST_NOTIFICATION_ID);
-  //           } else {
-  //             console.warn('[handleNotificationTap] No tourId found in data');
-  //           }
-  //           break;
-  
-  //       case 'system':
-  //         console.log('[handleNotificationTap] Navigating to /(tabs)/notifications');
-  //         router.push(`/notifications`);
-  //         // await AsyncStorage.removeItem(LAST_NOTIFICATION_ID);
-  //         break;
-  
-  //       default:
-  //         console.warn('[handleNotificationTap] Unknown type:', data.type);
-  //     }
-  //     // await AsyncStorage.setItem(LAST_NOTIFICATION_ID, notificationId || '');
-  //   } catch (error) {
-  //     console.error('[handleNotificationTap] Error handling notification tap:', error);
-  //   } finally {
-  //     if (notificationId) {
-  //       // await AsyncStorage.setItem(LAST_NOTIFICATION_ID, notificationId);                
-  //       await AsyncStorage.removeItem(LAST_NOTIFICATION_ID);
-  //       //log remove last notification
-  //       console.log('[handleNotificationTap] removed last notification id: ' + notificationId);
-  //     }
-  //   }
-  // };
+  const LAST_NOTIFICATION_ID = '@last_notification_id';
+  const processingNotificationId = useRef<string | null>(null);
 
-const LAST_NOTIFICATION_ID = '@last_notification_id';
-const processingNotificationId = useRef<string | null>(null);
+  const handleNotificationTap = async (
+    response: NotificationResponse | null,
+    isInitial: boolean = false
+  ) => {
+    if (typeof window === 'undefined') return;
+    
+    const notificationId = response?.notification.request.identifier;
+    if (!notificationId) return;
 
-const handleNotificationTap = async (
-  response: NotificationResponse | null,
-  isInitial: boolean = false
-) => {
-  const notificationId = response?.notification.request.identifier;
-  if (!notificationId) return;
-
-  // 🚫 Tránh trùng xử lý trong cùng phiên
-  if (processingNotificationId.current === notificationId) {
-    console.log('[handleNotificationTap] Already processing in-memory, skipping:', notificationId);
-    return;
-  }
-
-  // 🚫 Tránh xử lý lại nếu đã xử lý trước đó (lưu trong AsyncStorage)
-  const alreadyHandledId = await AsyncStorage.getItem(LAST_NOTIFICATION_ID);
-  if (alreadyHandledId === notificationId) {
-    console.log('[handleNotificationTap] Skipping duplicate notification tap', notificationId);
-    return;
-  }
-
-  processingNotificationId.current = notificationId;
-
-  try {
-    const data = response?.notification.request.content.data;
-    if (!data || !data.type) {
-      console.warn('[handleNotificationTap] Missing data or type');
+    // 🚫 Tránh trùng xử lý trong cùng phiên
+    if (processingNotificationId.current === notificationId) {
+      console.log('[handleNotificationTap] Already processing in-memory, skipping:', notificationId);
       return;
     }
 
-    console.log('[handleNotificationTap] preparing to route...');
-    switch (data.type) {
-      case 'booking': {
-        console.log('[handleNotificationTap] booking payload:', data);
-        const tourId = String(data.tourId ?? '');
-        if (tourId) {
-          const url = `/(tabs)/home/tour?id=${tourId}`;
-          isInitial
-            ? router.push(url)
-            : setTimeout(() => router.push(url), 300);
-        }
-        break;
-      }
-
-      case 'offer': {
-        const offerId = data.offerId || data.voucherId;
-        if (offerId) {
-          const url = `/(tabs)/voucher/detail?id=${offerId}`;
-          isInitial
-            ? router.push(url)
-            : setTimeout(() => router.push(url), 300);
-        }
-        break;
-      }
-
-      case 'system':
-        isInitial
-          ? router.push(`/notifications`)
-          : setTimeout(() => router.push(`/notifications`), 300);
-        break;
-
-      default:
-        console.warn('[handleNotificationTap] Unknown type:', data.type);
-        break;
+    // 🚫 Tránh xử lý lại nếu đã xử lý trước đó (lưu trong AsyncStorage)
+    const alreadyHandledId = await AsyncStorage.getItem(LAST_NOTIFICATION_ID);
+    if (alreadyHandledId === notificationId) {
+      console.log('[handleNotificationTap] Skipping duplicate notification tap', notificationId);
+      return;
     }
 
-    // ✅ Sau khi xử lý xong mới ghi vào storage
-    await AsyncStorage.setItem(LAST_NOTIFICATION_ID, notificationId);
-  } catch (err) {
-    console.error('[handleNotificationTap] Error:', err);
-  } finally {
-    processingNotificationId.current = null;
-  }
-};
+    processingNotificationId.current = notificationId;
+
+    try {
+      const data = response?.notification.request.content.data;
+      if (!data || !data.type) {
+        console.warn('[handleNotificationTap] Missing data or type');
+        return;
+      }
+
+      console.log('[handleNotificationTap] preparing to route...');
+      switch (data.type) {
+        case 'booking': {
+          console.log('[handleNotificationTap] booking payload:', data);
+          const tourId = String(data.tourId ?? '');
+          if (tourId) {
+            const url = `/(tabs)/home/tour?id=${tourId}`;
+            isInitial
+              ? router.push(url)
+              : setTimeout(() => router.push(url), 300);
+          }
+          break;
+        }
+
+        case 'offer': {
+          const offerId = data.offerId || data.voucherId;
+          if (offerId) {
+            const url = `/(tabs)/voucher/detail?id=${offerId}`;
+            isInitial
+              ? router.push(url)
+              : setTimeout(() => router.push(url), 300);
+          }
+          break;
+        }
+
+        case 'system':
+          isInitial
+            ? router.push(`/notifications`)
+            : setTimeout(() => router.push(`/notifications`), 300);
+          break;
+
+        default:
+          console.warn('[handleNotificationTap] Unknown type:', data.type);
+          break;
+      }
+
+      // ✅ Sau khi xử lý xong mới ghi vào storage
+      await AsyncStorage.setItem(LAST_NOTIFICATION_ID, notificationId);
+    } catch (err) {
+      console.error('[handleNotificationTap] Error:', err);
+    } finally {
+      processingNotificationId.current = null;
+    }
+  };
 
   
 

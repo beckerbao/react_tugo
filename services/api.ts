@@ -206,8 +206,21 @@ export const api = {
     getData: () => fetchApi<ApiResponse<HomepageData>>('/homepage'),
   },
   posts: {
-    getAll: (page = 1, pageSize = 10) => 
-      fetchApi<ApiResponse<PostsResponse>>(`/posts?page=${page}&page_size=${pageSize}&type=general`),
+    getAll: async ({ page = 1, page_size = 20 }: { page?: number; page_size?: number }) => {
+      const res = await fetch(`${API_BASE_URL}/posts?page=${page}&page_size=${page_size}`, {
+        headers: {
+          Authorization: `Bearer <YOUR_JWT_TOKEN>`, // bạn cần thay bằng token thật nếu có auth
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to fetch posts: ${res.status}`);
+      }
+
+      const json = await res.json();
+      console.log(json);
+      return json; // ✅ PHẢI CÓ return này
+    },
   },
   tours: {
     getDetail: (tourId: number) => 

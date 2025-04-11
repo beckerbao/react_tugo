@@ -27,12 +27,14 @@ export function useApi<T>(
         setState({ data: null, error: null, loading: true });
         const data = await apiFunc(...args);
         setState({ data, error: null, loading: false });
+        return data; // ✅ CHỈ THÊM DÒNG NÀY
       } catch (error) {
         setState({
           data: null,
           error: error instanceof ApiError ? error : new ApiError('An error occurred'),
           loading: false,
         });
+        return undefined; // optional: giúp các nơi khác biết lỗi
       }
     },
     [apiFunc]
