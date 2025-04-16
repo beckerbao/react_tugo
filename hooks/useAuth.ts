@@ -15,6 +15,8 @@ export function useAuth() {
   const { expoPushToken } = usePushNotificationContext();
 
   useEffect(() => {
+    console.log('[useAuth] useEffect mounted');
+    
     if (typeof window !== 'undefined') {
       AsyncStorage.getItem('@supabase.auth.token').then(val => {
         console.log('📦 Saved Supabase token:', val);

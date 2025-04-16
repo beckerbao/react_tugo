@@ -1,8 +1,13 @@
 import { Platform } from 'react-native';
 import { PostsResponse } from '@/types/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from './supabase';
+import uuid from 'react-native-uuid';
 
-const API_BASE_URL = 'https://api.review.tugo.com.vn/api/v1';
+// const API_BASE_URL = 'https://api.review.tugo.com.vn/api/v1';
 // const API_BASE_URL = 'http://localhost:9090/api/v1';
+// const API_BASE_URL = 'http://192.168.2.102:9090/api/v1';
+const API_BASE_URL = 'http://192.168.31.118:9090/api/v1';
 
 // Types for API responses
 export interface ApiResponse<T> {
@@ -140,11 +145,33 @@ async function fetchApi<T>(
   options: RequestInit = {}
 ): Promise<T> {
   try {
+    // Lấy token từ Supabase session hoặc từ anonymous_device_id
+    const session = (await supabase.auth.getSession()).data.session;
+    let token = '';
+
+    if (session?.access_token) {
+      token = session.access_token;
+    } else {
+      let anonymousId = await AsyncStorage.getItem('@anonymous_device_id');
+      
+      if (!anonymousId) {
+        anonymousId = uuid.v4() as string;
+        await AsyncStorage.setItem('@anonymous_device_id', anonymousId);
+      }
+
+      token = `anonymous:${anonymousId}`;
+    } 
+
+    console.log('Token:', token);
+
+    console.log('API BASE URL:', API_BASE_URL);
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers: {
         ...defaultHeaders,
         ...options.headers,
+        Authorization: `Bearer ${token}`, // ✅ thêm dòng này
       },
     });
 

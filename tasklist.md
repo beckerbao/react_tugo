@@ -1,4 +1,5 @@
-## NOTIFICATION
+# NOTIFICATION
+## NOTI DETAIL
 
 # INTERNAL DYNAMIC LINK
 
@@ -7,4 +8,8 @@
 
 # DISPLAY VERSION
 
-# Change icon
+# Change icon (DONE)
+
+# Phân loại post hiển thị khác nhau (DONE)
+
+# Đưa ảnh đoàn lên App

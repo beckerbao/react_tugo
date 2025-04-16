@@ -15,7 +15,6 @@ NODE_ENV=production eas build --platform android --profile local --local
 
 ======= BUILD CHẠY TRÊN THIẾT BỊ THẬT VỚI EXPO hoac tren EMULATOR ========
 npx expo run:ios --device >> build thanh app doc lap
-
 ======== XOA EMULATOR =====
 xcrun simctl shutdown all
 xcrun simctl erase all
@@ -24,32 +23,6 @@ xcrun simctl erase all
 export RCT_METRO_PORT=19000
 hoac
 RCT_METRO_PORT=19000 npx expo start --clear --tunnel ==> danh cho chay trong Expo
-
-====================== ANDROID ============
-🛠️ Method 1: Debug APK (no EAS, fastest)
-1️⃣ From project root run:
-
-bash
-Copy
-expo prebuild -p android
-2️⃣ Build the debug APK:
-
-bash
-Copy
-cd android
-./gradlew assembleDebug
-3️⃣ You’ll find the APK here:
-
-swift
-Copy
-android/app/build/outputs/apk/debug/app-debug.apk
-
-./adb install -r /Users/minhbaonguyen/Downloads/react_tugo/react_tugo/android/app/build/outputs/apk/debug/app-debug.apk 
-
-./adb -s R9JR90AA9WV install -r /Users/minhbaonguyen/Downloads/react_tugo/react_tugo/android/app/build/outputs/apk/debug/app-debug.apk
-
-./adb -s emulator-5554 install -r /Users/minhbaonguyen/Downloads/react_tugo/react_tugo/android/app/build/outputs/apk/debug/app-debug.apk
-
 ======================
 BUILD BANG EXPO.DEV
 
@@ -132,3 +105,5 @@ eas build --platform android --profile production --release-channel staging
 ---
 
 ✅ Sau khi build thành công, bạn sẽ nhận link download hoặc link upload trực tiếp lên Play Store/App Store thông qua dashboard expo.dev.
+
+eas submit --platform ios

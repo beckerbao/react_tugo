@@ -257,12 +257,23 @@ export function usePushNotifications() {
 
       if (fetchError) throw fetchError;
 
+      if (existingDevice?.id) {
+        await AsyncStorage.setItem(DEVICE_TOKEN_KEY, token);
+        await AsyncStorage.setItem('@anonymous_device_id', existingDevice.id); // ✅ ghi lại id nếu đã có
+      }
+
       if (!existingDevice) {
-        const { error: insertError } = await supabase
+        const { data: insertedDevice, error: insertError } = await supabase
           .from('anonymous_devices')
-          .insert({ push_token: token });
+          .insert({ push_token: token })
+          .select('id')     // ✅ yêu cầu trả về id
+          .single();        // ✅ chỉ lấy 1 record
 
         if (insertError) throw insertError;
+
+        if (insertedDevice?.id) {
+          await AsyncStorage.setItem('@anonymous_device_id', insertedDevice.id); // ✅ lưu id mới
+        }
 
         await AsyncStorage.setItem(DEVICE_TOKEN_KEY, token);
       }
