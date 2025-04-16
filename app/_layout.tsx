@@ -1,19 +1,36 @@
 import { useEffect } from 'react';
-import { Redirect, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useFonts, Inter_400Regular, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { SplashScreen } from 'expo-router';
-import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { PushNotificationProvider } from '@/contexts/PushNotificationContext';
 import { useAuth } from '@/hooks/useAuth';
-import PermissionModal from '@/components/PermissionModal';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  // ✅ Bọc toàn bộ nội dung trong Provider trước
+  return (
+    <PushNotificationProvider>
+      <RootLayoutInner />
+    </PushNotificationProvider>
+  );
+}
+
+// ✅ Hook và logic liên quan context chỉ chạy bên trong Provider
+// export default function RootLayout() {
+function RootLayoutInner() {
   useFrameworkReady();
 
-  const { showPermissionModal, handleAllowPermission, handleDenyPermission } = usePushNotifications();
+  // const { 
+  //   showPermissionModal, 
+  //   handleAllowPermission, 
+  //   handleDenyPermission,
+  //   getAndRegisterDeviceToken, 
+  //   permissionWasDenied,  } = usePushNotificationContext();
+
+  // const { loading: authLoading, user } = useAuth();
   const { loading: authLoading } = useAuth();
 
   const [fontsLoaded, fontError] = useFonts({
@@ -28,12 +45,22 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError, authLoading]);
 
+  // useEffect(() => {
+  //   getAndRegisterDeviceToken(); // luôn gọi 1 lần khi app mở
+  // }, []);
+  
+  // useEffect(() => {
+  //   if (user) {
+  //     getAndRegisterDeviceToken(); // đảm bảo token gắn user sau khi login
+  //   }
+  // }, [user]);
+
   if ((!fontsLoaded && !fontError) || authLoading) {
     return null;
   }
 
   return (
-    <>
+    <PushNotificationProvider>
       <Stack
         screenOptions={{
           headerShown: false,
@@ -49,11 +76,12 @@ export default function RootLayout() {
 
       <StatusBar style="auto" />
 
-      <PermissionModal
+      {/* <PermissionModal
         visible={showPermissionModal}
+        isDenied={permissionWasDenied}
         onAllow={handleAllowPermission}
         onDeny={handleDenyPermission}
-      />
-    </>
+      /> */}
+    </PushNotificationProvider>
   );
 }

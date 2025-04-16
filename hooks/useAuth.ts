@@ -1,21 +1,27 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/services/supabase';
 import { Session } from '@supabase/supabase-js';
-import { usePushNotifications } from './usePushNotifications';
+// import { usePushNotifications } from './usePushNotifications';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { usePushNotificationContext } from '@/contexts/PushNotificationContext';
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
-  const { expoPushToken } = usePushNotifications();
+  // const { expoPushToken } = usePushNotifications();
+  const { expoPushToken } = usePushNotificationContext();
 
   useEffect(() => {
-    AsyncStorage.getItem('@supabase.auth.token').then(val => {
-      console.log('📦 Saved Supabase token:', val);
-    });
+    console.log('[useAuth] useEffect mounted');
+    
+    if (typeof window !== 'undefined') {
+      AsyncStorage.getItem('@supabase.auth.token').then(val => {
+        console.log('📦 Saved Supabase token:', val);
+      });
+    }
 
     console.log('[Auth] Initializing...');
     const { data: { subscription } } = supabase.auth.onAuthStateChange(

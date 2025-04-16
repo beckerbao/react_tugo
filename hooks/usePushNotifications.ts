@@ -21,12 +21,34 @@ if (Platform.OS !== 'web') {
 }
 
 const DEVICE_TOKEN_KEY = '@device_token';
-const LAST_NOTIFICATION_ID = '@last_notification_id';
+// const LAST_NOTIFICATION_ID = '@last_notification_id';
+// const processingNotificationId = useRef<string | null>(null);
 
-let notificationListenerInstance: Notifications.Subscription | null = null;
+// let notificationListenerInstance: Notifications.Subscription | null = null;
 let responseListenerInstance: Notifications.Subscription | null = null;
+let hasInitialized = false;
 
 export function usePushNotifications() {
+  if (hasInitialized) {
+    console.log('[usePushNotifications] already initialized — skip setup');
+
+    // Trả về giá trị rỗng (dummy) nếu hook bị gọi lại
+    return {
+      expoPushToken: null,
+      notification: null,
+      setNotification: () => {},
+      showPermissionModal: false,
+      handleAllowPermission: () => {},
+      handleDenyPermission: () => {},
+      permissionWasDenied: false,
+      getAndRegisterDeviceToken: async () => {},
+    };
+  }
+
+  hasInitialized = true;
+  
+  console.log('[usePushNotifications] mounted');
+
   const [expoPushToken, setExpoPushToken] = useState<string | undefined>();
   const [notification, setNotification] = useState<Notifications.Notification>();
   const [showPermissionModal, setShowPermissionModal] = useState(false);
@@ -34,9 +56,16 @@ export function usePushNotifications() {
   const isMounted = useRef(true);
   const lastNotificationId = useRef<string | null>(null);
   const initialNotificationHandled = useRef(false);
-  const processedNotificationIdentifierRef = useRef<string | null>(null); // Track processed response
+  // const processedNotificationIdentifierRef = useRef<string | null>(null); // Track processed response
+  const hasSentToken = useRef(false); // tránh gửi nhiều lần trong cùng session
+
+  const notificationListenerRef = useRef<Notifications.Subscription | null>(null);
+  const responseListenerRef = useRef<Notifications.Subscription | null>(null);
+
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     isMounted.current = true;
     
     if (Platform.OS === 'web') {
@@ -51,38 +80,38 @@ export function usePushNotifications() {
         await checkPermissionAndToken();
 
         // Only set up listeners if they don't exist
-        if (!notificationListenerInstance) {
-          notificationListenerInstance = Notifications.addNotificationReceivedListener(
-            notification => {
+        // if (!notificationListenerInstance) {
+        //   notificationListenerInstance = Notifications.addNotificationReceivedListener(
+            // notification => {              
+        if (!notificationListenerRef.current) {
+          notificationListenerRef.current = Notifications.addNotificationReceivedListener(notification => {
+            const notificationId = notification.request.identifier;
+
               console.log('Notification Received:', notification);
-              const notificationId = notification.request.identifier;
               console.log('Received Notification ID:', notificationId);
               
               // Prevent processing duplicates *received* while app is open      
-              if (notificationId === lastNotificationId.current) { 
-                return;
-              }
+              // if (notificationId === lastNotificationId.current) { 
+              //   return;
+              // }
 
               if (isMounted.current) {
                 setNotification(notification);
-                lastNotificationId.current = notificationId;
-                AsyncStorage.setItem(LAST_NOTIFICATION_ID, notificationId);
+                // lastNotificationId.current = notificationId;
+                // AsyncStorage.setItem(LAST_NOTIFICATION_ID, notificationId);
               }
             }
           );
         }
 
-        if (!responseListenerInstance) {
-          responseListenerInstance = Notifications.addNotificationResponseReceivedListener(
+        // if (!responseListenerInstance) {
+        //   responseListenerInstance = Notifications.addNotificationResponseReceivedListener(
+        //     response => {
+        if (!responseListenerRef.current) {
+          responseListenerRef.current = Notifications.addNotificationResponseReceivedListener(
             response => {
               console.log('Notification Response Received:', response);
               console.log('Action Identifier:', response.actionIdentifier);
-              // if (isMounted.current) {
-              //   handleNotificationTap(response, false);
-              //   console.log('[PushNotifications] Listener: Called handleNotificationTap'); 
-              // } else {                                                                                                                                                                        
-              //   console.log('[PushNotifications] Listener: isMounted was false, did not call handleNotificationTap');                                                                         
-              // }
               console.log('Notification Response Received via Listener:', response);
               handleNotificationTap(response, false);
               console.log('[PushNotifications] Listener: Called handleNotificationTap (isMounted check removed)');
@@ -127,8 +156,17 @@ export function usePushNotifications() {
 
     return () => {
       isMounted.current = false;
+      // Gỡ listener đúng cách
+      notificationListenerRef.current?.remove();
+      notificationListenerRef.current = null;
+
+      responseListenerRef.current?.remove();
+      responseListenerRef.current = null;
     };
   }, []);
+
+  const hasPromptedForDenied = useRef(false); // giữ trạng thái trong phiên
+  const [permissionWasDenied, setPermissionWasDenied] = useState(false);
 
   const checkPermissionAndToken = async () => {
     if (!Device.isDevice) {
@@ -146,6 +184,10 @@ export function usePushNotifications() {
         }
       } else if (existingStatus === 'undetermined') {
         setShowPermissionModal(true);
+      } else if (existingStatus === 'denied' && !hasPromptedForDenied.current) {
+        hasPromptedForDenied.current = true;
+        setPermissionWasDenied(true);
+        setShowPermissionModal(true); // chỉ hiển thị 1 lần mỗi phiên
       }
     } catch (error) {
       console.error('Error checking permissions:', error);
@@ -192,7 +234,9 @@ export function usePushNotifications() {
     }
   };
 
-  const registerDevice = async (token: string) => {
+  const registerDevice = async (token: string, userId?: string) => {
+    if (typeof window === 'undefined') return;
+
     if (isRegistering.current || !isMounted.current) {
       return;
     }
@@ -213,12 +257,23 @@ export function usePushNotifications() {
 
       if (fetchError) throw fetchError;
 
+      if (existingDevice?.id) {
+        await AsyncStorage.setItem(DEVICE_TOKEN_KEY, token);
+        await AsyncStorage.setItem('@anonymous_device_id', existingDevice.id); // ✅ ghi lại id nếu đã có
+      }
+
       if (!existingDevice) {
-        const { error: insertError } = await supabase
+        const { data: insertedDevice, error: insertError } = await supabase
           .from('anonymous_devices')
-          .insert({ push_token: token });
+          .insert({ push_token: token })
+          .select('id')     // ✅ yêu cầu trả về id
+          .single();        // ✅ chỉ lấy 1 record
 
         if (insertError) throw insertError;
+
+        if (insertedDevice?.id) {
+          await AsyncStorage.setItem('@anonymous_device_id', insertedDevice.id); // ✅ lưu id mới
+        }
 
         await AsyncStorage.setItem(DEVICE_TOKEN_KEY, token);
       }
@@ -228,65 +283,86 @@ export function usePushNotifications() {
       isRegistering.current = false;
     }
   };
+  
+  const LAST_NOTIFICATION_ID = '@last_notification_id';
+  const processingNotificationId = useRef<string | null>(null);
 
   const handleNotificationTap = async (
     response: NotificationResponse | null,
     isInitial: boolean = false
   ) => {
+    if (typeof window === 'undefined') return;
+    
+    const notificationId = response?.notification.request.identifier;
+    if (!notificationId) return;
+
+    // 🚫 Tránh trùng xử lý trong cùng phiên
+    if (processingNotificationId.current === notificationId) {
+      console.log('[handleNotificationTap] Already processing in-memory, skipping:', notificationId);
+      return;
+    }
+
+    // 🚫 Tránh xử lý lại nếu đã xử lý trước đó (lưu trong AsyncStorage)
+    const alreadyHandledId = await AsyncStorage.getItem(LAST_NOTIFICATION_ID);
+    if (alreadyHandledId === notificationId) {
+      console.log('[handleNotificationTap] Skipping duplicate notification tap', notificationId);
+      return;
+    }
+
+    processingNotificationId.current = notificationId;
+
     try {
       const data = response?.notification.request.content.data;
-      if (!data || !data.type) return;
-  
-      const notificationId = response?.notification.request.identifier;
-      const alreadyHandledId = await AsyncStorage.getItem(LAST_NOTIFICATION_ID);
-  
-      if (alreadyHandledId === notificationId) {
-        console.log('[handleNotificationTap] Skipping duplicate notification tap');
+      if (!data || !data.type) {
+        console.warn('[handleNotificationTap] Missing data or type');
         return;
       }
-  
+
       console.log('[handleNotificationTap] preparing to route...');
-  
       switch (data.type) {
-        case 'offer':
-          const offerId = data.offerId || data.voucherId;
-          if (offerId) {
-            console.log(`[handleNotificationTap] Navigating to /(tabs)/voucher/detail?id=${offerId}`);
-            router.push(`/(tabs)/voucher/detail?id=${offerId}`);
-            await AsyncStorage.removeItem(LAST_NOTIFICATION_ID);
+        case 'booking': {
+          console.log('[handleNotificationTap] booking payload:', data);
+          const tourId = String(data.tourId ?? '');
+          if (tourId) {
+            const url = `/(tabs)/home/tour?id=${tourId}`;
+            isInitial
+              ? router.push(url)
+              : setTimeout(() => router.push(url), 300);
           }
           break;
-  
-        case 'booking':
-            console.log('[handleNotificationTap] booking payload:', data);
-            const tourId = String(data.tourId ?? '');
-            console.log('[handleNotificationTap] tourId (normalized):', tourId);
-          
-            if (tourId && tourId !== '') {
-              const url = `/(tabs)/home/tour?id=${tourId}`;
-              console.log(`[handleNotificationTap] Navigating to ${url}`);
-              router.push(url);
-              await AsyncStorage.removeItem(LAST_NOTIFICATION_ID);
-            } else {
-              console.warn('[handleNotificationTap] No tourId found in data');
-            }
-            break;
-  
-        case 'system':
-          console.log('[handleNotificationTap] Navigating to /(tabs)/notifications');
-          router.push(`/notifications`);
-          await AsyncStorage.removeItem(LAST_NOTIFICATION_ID);
+        }
+
+        case 'offer': {
+          const offerId = data.offerId || data.voucherId;
+          if (offerId) {
+            const url = `/(tabs)/voucher/detail?id=${offerId}`;
+            isInitial
+              ? router.push(url)
+              : setTimeout(() => router.push(url), 300);
+          }
           break;
-  
+        }
+
+        case 'system':
+          isInitial
+            ? router.push(`/notifications`)
+            : setTimeout(() => router.push(`/notifications`), 300);
+          break;
+
         default:
           console.warn('[handleNotificationTap] Unknown type:', data.type);
+          break;
       }
-  
-      await AsyncStorage.setItem(LAST_NOTIFICATION_ID, notificationId || '');
-    } catch (error) {
-      console.error('[handleNotificationTap] Error handling notification tap:', error);
+
+      // ✅ Sau khi xử lý xong mới ghi vào storage
+      await AsyncStorage.setItem(LAST_NOTIFICATION_ID, notificationId);
+    } catch (err) {
+      console.error('[handleNotificationTap] Error:', err);
+    } finally {
+      processingNotificationId.current = null;
     }
   };
+
   
 
   const sendPushNotification = async (expoPushToken: string, title: string, body: string, data = {}) => {
@@ -333,6 +409,61 @@ export function usePushNotifications() {
     }
   };
 
+  // Hàm lấy token từ thiết bị (và xin permission nếu cần)
+  const getDeviceToken = async (): Promise<string | null> => {
+    if (!Device.isDevice) return null;
+
+    let { status } = await Notifications.getPermissionsAsync();
+    if (status !== 'granted') {
+      const { status: newStatus } = await Notifications.requestPermissionsAsync();
+      status = newStatus;
+    }
+
+    if (status !== 'granted') return null;
+
+    const tokenData = await Notifications.getExpoPushTokenAsync();
+    return tokenData.data;
+  };
+  
+  let sentTokenRef: string | null = null;
+
+  const getAndRegisterDeviceToken = async (userId?: string) => {
+    if (!Device.isDevice) return;
+
+    try {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      //log existingStatus
+      console.log('Existing status:', existingStatus);
+
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== 'granted') {
+        console.warn('🔕 Permission denied for notifications.');
+        return;
+      }
+
+      const tokenData = await Notifications.getExpoPushTokenAsync();
+      const token = tokenData.data;
+
+      if (!token || token === sentTokenRef) return;
+
+      // Gọi API
+      await registerDevice(token, userId);
+      sentTokenRef = token;
+      hasSentToken.current = true;
+
+      console.log('✅ Registered device token:', token, userId || 'guest');
+    } catch (err) {
+      console.error('❌ Failed to register push token:', err);
+    }
+  };
+  
+
   return {
     expoPushToken,
     notification,
@@ -340,5 +471,8 @@ export function usePushNotifications() {
     handleAllowPermission,
     handleDenyPermission,
     sendPushNotification,
+    setShowPermissionModal,    
+    getAndRegisterDeviceToken,
+    permissionWasDenied, // ✅ thêm dòng này
   };
 }

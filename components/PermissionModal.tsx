@@ -1,14 +1,20 @@
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, Platform, Linking } from 'react-native';
 import { Bell } from 'lucide-react-native';
 
 interface PermissionModalProps {
   visible: boolean;
+  isDenied: boolean;
   onAllow: () => void;
   onDeny: () => void;
 }
 
-export default function PermissionModal({ visible, onAllow, onDeny }: PermissionModalProps) {
+export default function PermissionModal({ visible, isDenied, onAllow, onDeny }: PermissionModalProps) {
   if (Platform.OS === 'web') return null;
+
+  const handleSettings = () => {
+    Linking.openSettings(); // mở phần cài đặt app
+    onDeny(); // đóng modal
+  };
 
   return (
     <Modal
@@ -22,10 +28,10 @@ export default function PermissionModal({ visible, onAllow, onDeny }: Permission
             <Bell size={32} color="#8B5CF6" />
           </View>
           
-          <Text style={styles.title}>Enable Push Notifications</Text>
+          <Text style={styles.title}>Cho phép Tugo gửi thông báo</Text>
           
           <Text style={styles.message}>
-            Stay updated with our latest offers, booking confirmations, and travel updates.
+            Cập nhật sớm những ưu đãi dành riêng cho bạn.
           </Text>
           
           <View style={styles.buttonContainer}>
@@ -33,14 +39,16 @@ export default function PermissionModal({ visible, onAllow, onDeny }: Permission
               style={[styles.button, styles.denyButton]}
               onPress={onDeny}
             >
-              <Text style={[styles.buttonText, styles.denyButtonText]}>Not Now</Text>
+              <Text style={[styles.buttonText, styles.denyButtonText]}>Để sau</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.button, styles.allowButton]}
-              onPress={onAllow}
+              onPress={isDenied ? handleSettings : onAllow}
             >
-              <Text style={[styles.buttonText, styles.allowButtonText]}>Allow</Text>
+              <Text style={[styles.buttonText, styles.allowButtonText]}>
+                {isDenied ? 'Mở Cài Đặt' : 'Cho phép'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
