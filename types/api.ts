@@ -10,9 +10,11 @@ export interface Post {
   created_at: string;
   images: string[];
   likes: number;
+  loves: number;
   tour_name: string;
   type: string;
   user: User;
+  user_reaction?: 'like' | 'love' | null;
 }
 
 export interface PostsResponse {

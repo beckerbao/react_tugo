@@ -107,3 +107,17 @@ eas build --platform android --profile production --release-channel staging
 ✅ Sau khi build thành công, bạn sẽ nhận link download hoặc link upload trực tiếp lên Play Store/App Store thông qua dashboard expo.dev.
 
 eas submit --platform ios
+
+zip -r myapp.zip . \
+  -x "node_modules/*" \
+  -x ".git/*" \
+  -x "android/.gradle/*" \
+  -x "android/app/build/*" \
+  -x "ios/Pods/*" \
+  -x "ios/build/*" \
+  -x ".expo/*" \
+  -x ".expo-shared/*" \
+  -x ".vscode/*" \
+  -x "dist/*" \
+  -x "build/*" \
+  -x "*.log"

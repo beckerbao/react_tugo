@@ -1,5 +1,5 @@
 import 'react-native-url-polyfill/auto';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, RealtimeChannel} from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Database } from '@/types/supabase';
 
@@ -25,3 +25,25 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     })
   },
 });
+
+export function subscribeToPostReactions(
+  onUpdate: (payload: any) => void
+): RealtimeChannel {
+  const channel = supabase
+    .channel('post_reactions_channel')
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'posts', // hoặc bảng nào đang chứa like count
+      },
+      (payload) => {
+        console.log('🔥 Realtime update:', payload);
+        onUpdate(payload.new); // bạn sẽ nhận được dữ liệu mới (new row)
+      }
+    )
+    .subscribe();
+
+  return channel;
+}

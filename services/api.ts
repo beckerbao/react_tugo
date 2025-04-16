@@ -6,8 +6,9 @@ import uuid from 'react-native-uuid';
 
 // const API_BASE_URL = 'https://api.review.tugo.com.vn/api/v1';
 // const API_BASE_URL = 'http://localhost:9090/api/v1';
-// const API_BASE_URL = 'http://192.168.2.102:9090/api/v1';
-const API_BASE_URL = 'http://192.168.31.118:9090/api/v1';
+const API_BASE_URL = 'http://192.168.2.102:9090/api/v1';
+// const API_BASE_URL = 'http://192.168.31.118:9090/api/v1';
+// const API_BASE_URL = process.env.API_KD!;
 
 // Types for API responses
 export interface ApiResponse<T> {
@@ -234,19 +235,15 @@ export const api = {
   },
   posts: {
     getAll: async ({ page = 1, page_size = 20 }: { page?: number; page_size?: number }) => {
-      const res = await fetch(`${API_BASE_URL}/posts?page=${page}&page_size=${page_size}`, {
-        headers: {
-          Authorization: `Bearer <YOUR_JWT_TOKEN>`, // bạn cần thay bằng token thật nếu có auth
-        },
-      });
+      return fetchApi<ApiResponse<PostsResponse>>(`/posts?page=${page}&page_size=${page_size}`)
 
-      if (!res.ok) {
-        throw new Error(`Failed to fetch posts: ${res.status}`);
-      }
+      // if (!res.ok) {
+      //   throw new Error(`Failed to fetch posts: ${res.status}`);
+      // }
 
-      const json = await res.json();
-      console.log(json);
-      return json; // ✅ PHẢI CÓ return này
+      // const json = await res.json();
+      // console.log(json);
+      // return json; // ✅ PHẢI CÓ return này
     },
   },
   tours: {
@@ -285,6 +282,16 @@ export const api = {
         method: 'POST',                                                                                                                                                                        
         body: JSON.stringify({ voucher_id: voucherId }),                                                                                                                                       
       }), 
+  },
+  reactions: {
+    sendReaction: (postId: number, type: 'like' | 'love') =>
+      fetchApi<ApiResponse<any>>('/reactions', {
+        method: 'POST',
+        body: JSON.stringify({
+          post_id: postId,
+          reaction_type: type,
+        }),
+      }),
   },
 };
 
