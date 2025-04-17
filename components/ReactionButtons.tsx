@@ -30,7 +30,7 @@ export const ReactionButtons: React.FC<ReactionButtonsProps> = ({
         // Nếu mismatch → force reset state
         // console.log('[ReactionButtons] initialReaction:', initialReaction, 'current:', current);
         if (initialReaction !== current) {
-          setCurrent(initialReaction);          
+          setCurrent(initialReaction);
         }
         
         setLikeCount(likes ?? 0);

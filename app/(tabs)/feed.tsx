@@ -22,6 +22,8 @@ import { ReactionButtons } from '@/components/ReactionButtons';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'expo-router';
+import { subscribeToPostReactions } from '@/services/supabase';
+import { supabase } from '@/services/supabase';
 
 const API_BASE_URL = 'https://api.review.tugo.com.vn';
 const DEFAULT_AVATAR = `${API_BASE_URL}/assets/images/avatar.png`;
@@ -79,6 +81,24 @@ export default function FeedScreen() {
     }
   }, [session]); 
 
+  useEffect(() => {
+    const channel = subscribeToPostReactions((postId, updated) => {
+      console.log('[Realtime] updated:', postId, updated);
+  
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId
+            ? { ...post, ...updated }
+            : post
+        )
+      );
+    });
+  
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     // await fetchPosts();
@@ -109,7 +129,7 @@ export default function FeedScreen() {
     }
   };
 
-  if (loading && posts.length === 0) {
+  if (loading && posts.length === 0) {    
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>

@@ -27,20 +27,29 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 });
 
 export function subscribeToPostReactions(
-  onUpdate: (payload: any) => void
-): RealtimeChannel {
+  onUpdate: (postId: number, updated: { likes: number; loves: number }) => void
+): RealtimeChannel {  
   const channel = supabase
-    .channel('post_reactions_channel')
+    .channel('posts_realtime')
     .on(
       'postgres_changes',
       {
         event: 'UPDATE',
         schema: 'public',
-        table: 'posts', // hoặc bảng nào đang chứa like count
+        table: 'posts',
       },
       (payload) => {
-        console.log('🔥 Realtime update:', payload);
-        onUpdate(payload.new); // bạn sẽ nhận được dữ liệu mới (new row)
+        const updated = payload.new;
+
+        console.log('[Realtime] Updated post:', updated.id, {
+          likes: updated.likes,
+          loves: updated.loves,
+        });
+  
+        onUpdate(updated.id, {
+          likes: updated.likes,
+          loves: updated.loves,
+        });
       }
     )
     .subscribe();
