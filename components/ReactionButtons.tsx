@@ -29,10 +29,10 @@ export const ReactionButtons: React.FC<ReactionButtonsProps> = ({
     useEffect(() => {
         // Nếu mismatch → force reset state
         // console.log('[ReactionButtons] initialReaction:', initialReaction, 'current:', current);
-        if (initialReaction !== current) {
-          setCurrent(initialReaction);
-        }
-        
+        // if (initialReaction !== current) {
+        //   setCurrent(initialReaction);
+        // }
+        setCurrent(initialReaction);
         setLikeCount(likes ?? 0);
         setLoveCount(loves ?? 0);
 

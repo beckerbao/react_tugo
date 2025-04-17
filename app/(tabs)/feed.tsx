@@ -88,7 +88,7 @@ export default function FeedScreen() {
       setPosts((prev) =>
         prev.map((post) =>
           post.id === postId
-            ? { ...post, ...updated }
+            ? { ...post, ...updated, user_reaction: post.user_reaction }
             : post
         )
       );
@@ -221,7 +221,28 @@ export default function FeedScreen() {
                     if (reaction === null) return;
                     try {
                       await api.reactions.sendReaction(post.id, reaction);
-                      // không cần setPosts nếu có realtime
+                      // ✅ update user_reaction ngay sau khi gửi thành công
+                      setPosts((prev) =>
+                        prev.map((p) => {
+                          if (p.id !== post.id) return p;
+                      
+                          let newLikes = p.likes;
+                          let newLoves = p.loves;
+                      
+                          if (p.user_reaction === 'like') newLikes--;
+                          if (p.user_reaction === 'love') newLoves--;
+                      
+                          if (reaction === 'like') newLikes++;
+                          if (reaction === 'love') newLoves++;
+                      
+                          return {
+                            ...p,
+                            likes: newLikes,
+                            loves: newLoves,
+                            user_reaction: reaction,
+                          };
+                        })
+                      );
                     } catch (err) {
                       console.error('Gửi reaction thất bại:', err);
                     }
