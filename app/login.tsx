@@ -101,7 +101,7 @@ export default function LoginScreen() {
               onChangeText={setPassword}
               placeholder="Nhập mật khẩu"
               secureTextEntry
-            />
+            />            
 
             <TouchableOpacity 
               style={[
@@ -116,6 +116,10 @@ export default function LoginScreen() {
               ) : (
                 <Text style={styles.signUpButtonText}>Đăng nhập</Text>
               )}
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => router.push('/forgot-password')} style={{ marginTop: 16 }}>
+              <Text style={styles.forgotText}>Quên mật khẩu?</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 

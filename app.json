@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon6.png",
     "scheme": "tugo",
+    "deepLinking": true,
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash3.png",
@@ -19,7 +20,8 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIDeviceFamily": [1]
-      }
+      },
+      "associatedDomains": ["applinks:tugo.com.vn"]
     },
     "android": {
       "package": "com.tugo.travel.vn",
@@ -31,6 +33,19 @@
       "permissions": [
         "CAMERA",
         "NOTIFICATIONS"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "https",
+              "host": "tugo.com.vn",
+              "pathPrefix": "/reset-password"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
       ]
     },
     "web": {

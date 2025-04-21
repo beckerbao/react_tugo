@@ -96,7 +96,7 @@ export default function VouchersScreen() {
           <LogIn size={48} color="#8B5CF6" />                                                                                                                                                  
           <Text style={styles.guestTitle}>Login Required</Text>                                                                                                                                
           <Text style={styles.guestMessage}>                                                                                                                                                   
-            Please login to view and collect vouchers                                                                                                                                          
+            Please login to view and collect vouchers 
           </Text>                                                                                                                                                                              
           <TouchableOpacity                                                                                                                                                                    
             style={styles.loginButton}                                                                                                                                                         

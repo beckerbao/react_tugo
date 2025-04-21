@@ -4,11 +4,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
 import uuid from 'react-native-uuid';
 
-const API_BASE_URL = 'https://api.review.tugo.com.vn/api/v1';
+// const API_BASE_URL = 'https://api.review.tugo.com.vn/api/v1';
 // const API_BASE_URL = 'http://localhost:9090/api/v1';
 // const API_BASE_URL = 'http://192.168.2.102:9090/api/v1';
 // const API_BASE_URL = 'http://192.168.31.118:9090/api/v1';
-// const API_BASE_URL = 'http://192.168.0.176:9090/api/v1';
+const API_BASE_URL = 'http://192.168.0.177:9090/api/v1';
 // const API_BASE_URL = process.env.API_KD!;
 
 // Types for API responses
@@ -294,6 +294,19 @@ export const api = {
         }),
       }),
   },
+  auth: {
+    requestReset: (payload: { email: string }) =>
+      fetchApi<ApiResponse<null>>('/auth/request-reset', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }),
+
+    resetPassword: (payload: { token: string; new_password: string }) =>
+      fetchApi<ApiResponse<null>>('/auth/reset-password', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }),
+  }
 };
 
 // Define the structure of a single voucher from the API based on the new response

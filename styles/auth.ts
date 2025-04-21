@@ -112,4 +112,8 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
   },
+  forgotText: {
+    color: '#007bff',
+    fontSize: 14,
+  }
 });

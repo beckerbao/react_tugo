@@ -37,7 +37,7 @@ export const ReactionButtons: React.FC<ReactionButtonsProps> = ({
         setLoveCount(loves ?? 0);
 
       }, [initialReaction, likes, loves]);
-    console.log('[ReactionButtons] postId:', postId, 'initialReaction:', initialReaction, 'current:', current);
+    // console.log('[ReactionButtons] postId:', postId, 'initialReaction:', initialReaction, 'current:', current);
 
 
   const handlePress = (reaction: Reaction) => {
