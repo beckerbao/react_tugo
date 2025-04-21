@@ -21,7 +21,7 @@
         "ITSAppUsesNonExemptEncryption": false,
         "UIDeviceFamily": [1]
       },
-      "associatedDomains": ["applinks:tugo.com.vn"]
+      "associatedDomains": ["applinks:review.tugo.com.vn"]
     },
     "android": {
       "package": "com.tugo.travel.vn",
@@ -40,8 +40,43 @@
           "data": [
             {
               "scheme": "https",
-              "host": "tugo.com.vn",
+              "host": "review.tugo.com.vn",
               "pathPrefix": "/reset-password"
+            },
+            {
+              "scheme": "https",
+              "host": "review.tugo.com.vn",
+              "pathPrefix": "/voucher*"
+            },
+            {
+              "scheme": "https",
+              "host": "review.tugo.com.vn",
+              "pathPrefix": "/voucher/detail"
+            },
+            {
+              "scheme": "https",
+              "host": "review.tugo.com.vn",
+              "pathPrefix": "/home"
+            },
+            {
+              "scheme": "https",
+              "host": "review.tugo.com.vn",
+              "pathPrefix": "/feed"
+            },
+            {
+              "scheme": "https",
+              "host": "review.tugo.com.vn",
+              "pathPrefix": "/search"
+            },
+            {
+              "scheme": "https",
+              "host": "review.tugo.com.vn",
+              "pathPrefix": "/home/tour*"
+            },
+            {
+              "scheme": "https",
+              "host": "review.tugo.com.vn",
+              "pathPrefix": "/home/destination*"
             }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
