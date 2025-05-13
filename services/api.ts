@@ -6,8 +6,8 @@ import uuid from 'react-native-uuid';
 
 const API_BASE_URL = 'https://api.review.tugo.com.vn/api/v1';
 // const API_BASE_URL = 'http://localhost:9090/api/v1';
-// const API_BASE_URL = 'http://192.168.2.102:9090/api/v1';
-// const API_BASE_URL = 'http://192.168.31.118:9090/api/v1';
+// const API_BASE_URL = 'http://192.168.2.1:9090/api/v1';
+// const API_BASE_URL = 'http://192.168.31.93:9090/api/v1';
 // const API_BASE_URL = 'http://192.168.0.177:9090/api/v1';
 // const API_BASE_URL = process.env.API_KD!;
 

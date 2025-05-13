@@ -121,3 +121,6 @@ zip -r myapp.zip . \
   -x "dist/*" \
   -x "build/*" \
   -x "*.log"
+
+
+AASA: /tugo-com-fe/.well-known# nano apple-app-site-association
