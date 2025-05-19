@@ -18,6 +18,12 @@ import { api } from '@/services/api';
 import { Post } from '@/types/api';
 import ErrorView from '@/components/ErrorView';
 import { styles } from '@/styles/feed';
+import { ReactionButtons } from '@/components/ReactionButtons';
+import LoginPromptModal from '@/components/LoginPromptModal';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'expo-router';
+import { subscribeToPostReactions } from '@/services/supabase';
+import { supabase } from '@/services/supabase';
 
 const API_BASE_URL = 'https://api.review.tugo.com.vn';
 const DEFAULT_AVATAR = `${API_BASE_URL}/assets/images/avatar.png`;
@@ -29,6 +35,9 @@ export default function FeedScreen() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const { session } = useAuth();
+  const router = useRouter();
   
   const { 
     data: postsData, 
@@ -39,25 +48,61 @@ export default function FeedScreen() {
 
   const loadPosts = async (pageNum: number, isRefresh = false) => {
     const query = { page: pageNum, page_size: 20 };
-    const result = await fetchPosts(query); // ✅ lấy từ chính execute
-  
-    const fetched = result?.data?.posts || []; // ✅ dùng response trực tiếp
-    if (isRefresh) {
-      setPosts(fetched);
-    } else {
-      setPosts(prev => [...prev, ...fetched]);
+    try {
+      const result = await fetchPosts(query); // ✅ lấy từ chính execute
+
+      console.log('[DEBUG] result from fetchPosts:', result);
+
+      const fetched = result?.data?.posts || []; // ✅ dùng response trực tiếp
+      
+      console.log('[DEBUG] session:', session);
+      console.log('[DEBUG] fetched posts[0]:', fetched[0]);
+
+      if (isRefresh) {
+        setPosts(fetched);
+      } else {
+        setPosts(prev => [...prev, ...fetched]);
+      }
+      setHasMore(fetched.length === 20);
+      setPage(pageNum);
+    } catch (err) {
+      console.error('❌ loadPosts failed:', error);
+      // Không cần xử lý UI ở đây vì useApi đã set error
     }
-    setHasMore(fetched.length === 20);
-    setPage(pageNum);
   };
 
   useEffect(() => {
     loadPosts(1, true); // ✅ gọi đúng logic loadPosts (có setPosts)
   }, []);
 
+  useEffect(() => {
+    if (session) {
+      loadPosts(1, true); // ✅ refetch lại khi vừa login
+    }
+  }, [session]); 
+
+  useEffect(() => {
+    const channel = subscribeToPostReactions((postId, updated) => {
+      console.log('[Realtime] updated:', postId, updated);
+  
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId
+            ? { ...post, ...updated, user_reaction: post.user_reaction }
+            : post
+        )
+      );
+    });
+  
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchPosts();
+    // await fetchPosts();
+    await loadPosts(1, true);
     setRefreshing(false);
   }, [fetchPosts]);
 
@@ -84,7 +129,7 @@ export default function FeedScreen() {
     }
   };
 
-  if (loading && posts.length === 0) {
+  if (loading && posts.length === 0) {    
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
@@ -164,6 +209,45 @@ export default function FeedScreen() {
             {post.images && post.images.length > 0 && (
               <Image source={{ uri: post.images[0] }} style={styles.postImage} />
             )}
+
+            <ReactionButtons
+                  postId={post.id}
+                  initialReaction={post.user_reaction ?? null}// đảm bảo post trả về trường này
+                  likes={post.likes}
+                  loves={post.loves}
+                  disabled={!session}
+                  onLoginRequired={() => setShowLoginModal(true)}
+                  onReactionSent={async (reaction) => {
+                    if (reaction === null) return;
+                    try {
+                      await api.reactions.sendReaction(post.id, reaction);
+                      // ✅ update user_reaction ngay sau khi gửi thành công
+                      setPosts((prev) =>
+                        prev.map((p) => {
+                          if (p.id !== post.id) return p;
+                      
+                          let newLikes = p.likes;
+                          let newLoves = p.loves;
+                      
+                          if (p.user_reaction === 'like') newLikes--;
+                          if (p.user_reaction === 'love') newLoves--;
+                      
+                          if (reaction === 'like') newLikes++;
+                          if (reaction === 'love') newLoves++;
+                      
+                          return {
+                            ...p,
+                            likes: newLikes,
+                            loves: newLoves,
+                            user_reaction: reaction,
+                          };
+                        })
+                      );
+                    } catch (err) {
+                      console.error('Gửi reaction thất bại:', err);
+                    }
+                  }}
+                />
           </View>
         ))}
 
@@ -173,6 +257,14 @@ export default function FeedScreen() {
           </View>
         )}
       </ScrollView>
+      <LoginPromptModal
+        visible={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLogin={() => {
+          setShowLoginModal(false);
+          router.push('/login');
+        }}
+      />
     </SafeAreaView>
   );
 }

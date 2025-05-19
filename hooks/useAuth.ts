@@ -153,6 +153,23 @@ export function useAuth() {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'tugo://reset-password', // dùng đúng scheme đã config
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Lỗi không xác định' };
+    }
+  };
+
+
   const continueAsGuest = () => {
     setIsGuest(true);
     setSession(null);
@@ -168,5 +185,6 @@ export function useAuth() {
     signOut,
     deleteAccount,
     continueAsGuest,
+    resetPassword,
   };
 }

@@ -13,3 +13,8 @@
 # Phân loại post hiển thị khác nhau (DONE)
 
 # Đưa ảnh đoàn lên App
+
+# Reload feed bị lỗi
+
+# deep link (DONE)
+# dynamic link

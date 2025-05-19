@@ -27,6 +27,12 @@ const menuItems = [
     icon: LogOut,
     color: '#EF4444',
   },
+  {
+    id: 'lucky-wheel',
+    title: 'Vòng quay may mắn',
+    icon: BookmarkIcon, // hoặc biểu tượng khác nếu bạn thích
+    color: '#10B981', // xanh lá nhẹ
+  },
 ];
 
 const DEFAULT_AVATAR = 'https://api.review.tugo.com.vn/assets/images/avatar.png';
@@ -49,6 +55,9 @@ export default function ProfileScreen() {
       case 'logout':
         await signOut();
         router.replace('/login');
+        break;
+      case 'lucky-wheel':
+        router.push('/(stack)/lucky-wheel');
         break;
     }
   };
