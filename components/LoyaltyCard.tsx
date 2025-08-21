@@ -117,12 +117,12 @@ export default function LoyaltyCard({
                 backgroundColor="white"
               />
             </View>
-            <Text style={styles.qrLabel}>Quét mã để tích điểm</Text>
+            {/* <Text style={styles.qrLabel}>Quét mã để tích điểm</Text> */}
           </View>
 
           <View style={styles.backFooter}>
             <Text style={styles.fullCardNumber}>Mã thẻ: {cardNumber}</Text>
-            <Text style={styles.tapHint}>Chạm để quay lại</Text>
+            {/* <Text style={styles.tapHint}>Chạm để quay lại</Text> */}
           </View>
         </Animated.View>
       </View>
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#6B7280',
-    textAlign: 'center',
+    textAlign: 'center',    
   },
   backFooter: {
     alignItems: 'center',
