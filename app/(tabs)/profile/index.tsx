@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Modal, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CircleUser as UserCircle, Bookmark as BookmarkIcon, History, Settings2, LogOut, Trash2 } from 'lucide-react-native';
+import { CircleUser as UserCircle, Bookmark as BookmarkIcon, History, Settings2, LogOut, Trash2, Crown } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import NotificationBell from '@/components/NotificationBell';
 import { useAuth } from '@/hooks/useAuth';
@@ -111,6 +111,22 @@ export default function ProfileScreen() {
           </View>
           <Text style={styles.name}>{profile?.full_name || 'Guest User'}</Text>
         </View>
+
+        <TouchableOpacity 
+          style={styles.loyaltySection}
+          onPress={() => router.push('/profile/loyalty')}
+        >
+          <View style={styles.loyaltyContent}>
+            <View style={styles.loyaltyIcon}>
+              <Crown size={24} color="#8B5CF6" />
+            </View>
+            <View style={styles.loyaltyInfo}>
+              <Text style={styles.loyaltyTitle}>Chương trình TugoCare</Text>
+              <Text style={styles.loyaltyTier}>Hạng hiện tại: TugoCare</Text>
+            </View>
+            <Text style={styles.loyaltyArrow}>›</Text>
+          </View>
+        </TouchableOpacity>
 
         <View style={styles.menuSection}>
           {menuItems.map((item, index) => (
