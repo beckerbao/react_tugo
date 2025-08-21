@@ -116,13 +116,11 @@ export default function LoyaltyCard({
                 color={color}
                 backgroundColor="white"
               />
-            </View>
-            {/* <Text style={styles.qrLabel}>Quét mã để tích điểm</Text> */}
+            </View>            
           </View>
 
           <View style={styles.backFooter}>
-            <Text style={styles.fullCardNumber}>Mã thẻ: {cardNumber}</Text>
-            {/* <Text style={styles.tapHint}>Chạm để quay lại</Text> */}
+            <Text style={styles.fullCardNumber}>{cardNumber}</Text>            
           </View>
         </Animated.View>
       </View>
@@ -229,29 +227,29 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 16,
   },
   qrCodeWrapper: {
     backgroundColor: 'white',
     padding: 12,
     borderRadius: 12,
-    marginBottom: 20,
+    marginBottom: 12,
   },
   qrLabel: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#6B7280',
-    textAlign: 'center',    
+    textAlign: 'center',
   },
   backFooter: {
     alignItems: 'center',
-    paddingTop: 12,
+    paddingTop: 16,
   },
   fullCardNumber: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 15,
     color: '#1F2937',
-    marginBottom: 12,
+    marginBottom: 8,
     letterSpacing: 1,
   },
 });

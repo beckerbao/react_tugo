@@ -16,7 +16,7 @@ export default {
       backgroundColor: "#ffffff"
     },
     ios: {
-      bundleIdentifier: "com.tugo.travel.vn",
+      bundleIdentifier: "com.tugo.travel.dev",
       supportsTablet: false,
       usesAppleSignIn: true,
       associatedDomains: ["applinks:review.tugo.com.vn"],
@@ -26,7 +26,7 @@ export default {
       }
     },
     android: {
-      package: "com.tugo.travel.vn",
+      package: "com.tugo.travel.dev",
       versionCode: 1,
       adaptiveIcon: {
         foregroundImage: "./assets/images/icon6.png",

@@ -22,6 +22,33 @@ export interface TugoCareUserStatsResponse {
   data: TugoCareUserStat[];
 }
 
+export interface TugoCareBenefit {
+  id: number;
+  code: string;
+  name: string;
+  kind: string;
+  description: string;
+}
+
+export interface TugoCareTier {
+  id: number;
+  code: string;
+  name: string;
+  rank_order: number;
+  min_spend_12m: number;
+  grace_days: number;
+  metadata: any;
+  created_at: string;
+  updated_at: string;
+  benefits: TugoCareBenefit[];
+}
+
+export interface TugoCareTearsResponse {
+  status: string;
+  message: string;
+  data: TugoCareTier[];
+}
+
 export interface Hero {
   image: string;
   subtitle: string;
@@ -207,6 +234,68 @@ async function fetchApi<T>(
   }
 }
 
+async function fetchApiTugoCare<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
+  try {
+    const response = await fetch(`${TUGO_CARE_API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        ...defaultHeaders,
+        ...options.headers,
+        'ngrok-skip-browser-warning': '1'
+      },
+    });
+
+    // Get the raw response text first
+    const responseText = await response.text();
+
+    // Try to parse as JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      throw new ApiError(
+        'Failed to parse response as JSON',
+        response.status,
+        'PARSE_ERROR',
+        responseText
+      );
+    }
+
+    if (!response.ok) {
+      throw new ApiError(
+        data.message || 'An error occurred',
+        response.status,
+        data.code,
+        JSON.stringify(data)
+      );
+    }
+
+    return data as T;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    
+    // Handle network errors
+    if (error instanceof TypeError && error.message === 'Network request failed') {
+      throw new ApiError(
+        'Network connection failed. Please check your internet connection.',
+        0,
+        'NETWORK_ERROR'
+      );
+    }
+
+    throw new ApiError(
+      error instanceof Error ? error.message : 'An unexpected error occurred',
+      0,
+      'UNKNOWN_ERROR'
+    );
+  }
+}
+
 // API endpoints
 export const api = {
   homepage: {
@@ -237,6 +326,8 @@ export const api = {
   },
   tugocare: {
     getUserStats: (userId: number) => 
-      fetchApi<TugoCareUserStatsResponse>(`${TUGO_CARE_API_BASE_URL}/tugocare/user-stats?user_ids=${userId}`),
+      fetchApiTugoCare<TugoCareUserStatsResponse>(`/tugocare/user-stats?user_ids=${userId}`),
+    getTiers: () => 
+      fetchApiTugoCare<TugoCareTearsResponse>(`/tugocare/tiers`),
   },
 };

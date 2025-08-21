@@ -156,4 +156,29 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+    loadingContainer: {
+    alignItems: 'center',
+    padding: 32,
+  },
+  loadingText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: '#6B7280',
+    marginTop: 12,
+  },
+  errorContainer: {
+    alignItems: 'center',
+    padding: 32,
+  },
+  errorText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: '#EF4444',
+  },
+  tierMinSpend: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 4,
+  },
 });
