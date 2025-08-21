@@ -1,21 +1,25 @@
 import { Platform } from 'react-native';
 import { PostsResponse } from '@/types/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase } from './supabase';
-import uuid from 'react-native-uuid';
 
 const API_BASE_URL = 'https://api.review.tugo.com.vn/api/v1';
-// const API_BASE_URL = 'http://localhost:9090/api/v1';
-// const API_BASE_URL = 'http://192.168.2.1:9090/api/v1';
-// const API_BASE_URL = 'http://192.168.31.93:9090/api/v1';
-// const API_BASE_URL = 'http://192.168.0.177:9090/api/v1';
-// const API_BASE_URL = process.env.API_KD!;
+const TUGO_CARE_API_BASE_URL = 'https://36bcaa2bfe9c.ngrok-free.app/api/v1';
 
 // Types for API responses
 export interface ApiResponse<T> {
   status: string;
   message: string;
   data: T;
+}
+
+export interface TugoCareUserStat {
+  user_id: number;
+  total_12m_vnd: number;
+}
+
+export interface TugoCareUserStatsResponse {
+  status: string;
+  message: string;
+  data: TugoCareUserStat[];
 }
 
 export interface Hero {
@@ -147,33 +151,11 @@ async function fetchApi<T>(
   options: RequestInit = {}
 ): Promise<T> {
   try {
-    // Lấy token từ Supabase session hoặc từ anonymous_device_id
-    const session = (await supabase.auth.getSession()).data.session;
-    let token = '';
-
-    if (session?.access_token) {
-      token = session.access_token;
-    } else {
-      let anonymousId = await AsyncStorage.getItem('@anonymous_device_id');
-      
-      if (!anonymousId) {
-        anonymousId = uuid.v4() as string;
-        await AsyncStorage.setItem('@anonymous_device_id', anonymousId);
-      }
-
-      token = `anonymous:${anonymousId}`;
-    } 
-
-    console.log('Token:', token);
-
-    console.log('API BASE URL:', API_BASE_URL);
-
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers: {
         ...defaultHeaders,
         ...options.headers,
-        Authorization: `Bearer ${token}`, // ✅ thêm dòng này
       },
     });
 
@@ -193,18 +175,14 @@ async function fetchApi<T>(
       );
     }
 
-    // Assuming your API wraps successful responses like { status: 'success', data: ... }                                                                                                      
-    // Adjust this logic if your API structure is different                                                                                                                                    
-    if (!response.ok || (data.status && data.status !== 'success' && data.status !== 200)) {                                                                                                   
-      // Try to get a meaningful message from the response body                                                                                                                               
-      const errorMessage = data?.message || data?.error || 'An error occurred';                                                                                                               
-      throw new ApiError(                                                                                                                                                                     
-        errorMessage,                                                                                                                                                                         
-        response.status,                                                                                                                                                                      
-        data?.code, // Optional error code from API                                                                                                                                           
-        JSON.stringify(data) // Include full response data for debugging                                                                                                                      
-      );                                                                                                                                                                                      
-   }
+    if (!response.ok) {
+      throw new ApiError(
+        data.message || 'An error occurred',
+        response.status,
+        data.code,
+        JSON.stringify(data)
+      );
+    }
 
     return data as T;
   } catch (error) {
@@ -235,17 +213,8 @@ export const api = {
     getData: () => fetchApi<ApiResponse<HomepageData>>('/homepage'),
   },
   posts: {
-    getAll: async ({ page = 1, page_size = 20 }: { page?: number; page_size?: number }) => {
-      return fetchApi<ApiResponse<PostsResponse>>(`/posts?page=${page}&page_size=${page_size}`)
-
-      // if (!res.ok) {
-      //   throw new Error(`Failed to fetch posts: ${res.status}`);
-      // }
-
-      // const json = await res.json();
-      // console.log(json);
-      // return json; // ✅ PHẢI CÓ return này
-    },
+    getAll: (page = 1, pageSize = 10) => 
+      fetchApi<ApiResponse<PostsResponse>>(`/posts?page=${page}&page_size=${pageSize}&type=general`),
   },
   tours: {
     getDetail: (tourId: number) => 
@@ -266,61 +235,8 @@ export const api = {
     getTours: (destinationId: string | number) =>
       fetchApi<ApiResponse<DestinationDetail>>(`/destination/tours?destination_id=${destinationId}`),
   },
-  // Add the new vouchers endpoint                                                                                                                                                             
-  vouchers: {
-    // Update the expected type parameter for fetchApi.
-    // fetchApi returns the `data` field of ApiResponse, which is UserVoucher[] here.
-    getUserVouchers: (userId: string) =>
-      fetchApi<ApiResponse<UserVoucher[]>>(`/user-vouchers?user_id=${userId}`),
-    // Add the new claim voucher endpoint
-    claimVoucher: (userId: string, voucherId: number) =>
-      fetchApi<ApiResponse<any>>(`/voucher/claim?user_id=${userId}`, { // Use any for now, refine if success response has specific data
-        method: 'POST',
-        body: JSON.stringify({ voucher_id: voucherId }),
-      }),
-    useVoucher: (userId: string, voucherId: number) =>                                                                                                                                         
-      fetchApi<ApiResponse<any>>(`/voucher/use?user_id=${userId}`, {                                                                                                                           
-        method: 'POST',                                                                                                                                                                        
-        body: JSON.stringify({ voucher_id: voucherId }),                                                                                                                                       
-      }), 
+  tugocare: {
+    getUserStats: (userId: number) => 
+      fetchApi<TugoCareUserStatsResponse>(`${TUGO_CARE_API_BASE_URL}/tugocare/user-stats?user_ids=${userId}`),
   },
-  reactions: {
-    sendReaction: (postId: number, type: 'like' | 'love') =>
-      fetchApi<ApiResponse<any>>('/reactions', {
-        method: 'POST',
-        body: JSON.stringify({
-          post_id: postId,
-          reaction_type: type,
-        }),
-      }),
-  },
-  auth: {
-    requestReset: (payload: { email: string }) =>
-      fetchApi<ApiResponse<null>>('/auth/request-reset', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      }),
-
-    resetPassword: (payload: { token: string; new_password: string }) =>
-      fetchApi<ApiResponse<null>>('/auth/reset-password', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      }),
-  }
 };
-
-// Define the structure of a single voucher from the API based on the new response
-export interface UserVoucher {
-  id: number;
-  voucher_name: string;
-  term_condition: string; // Represents the discount/offer details
-  valid_until: string;
-  code: string;
-  available_for: string;
-  claim_status: 'claimed' | 'not_claimed';
-  status: 'active' | 'expired' | 'used'; // Assuming 'used' might be a status
-  usage_status: 'used' | 'not_used';
-  // Add any other relevant fields from your API if needed
-}
-
-// UserVouchersResponse is no longer needed as the data is directly an array in the ApiResponse

@@ -1,11 +1,15 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Crown, Star, Award } from 'lucide-react-native';
+import { ArrowLeft, Crown, Star, Award, Loader } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useEffect, useCallback } from 'react';
 import LoyaltyCard from '../../../components/LoyaltyCard';
 import { useProfile } from '../../../hooks/useProfile';
+import { useAuth } from '../../../hooks/useAuth';
+import { useApi } from '../../../hooks/useApi';
+import { api } from '../../../services/api';
+import { formatPrice } from '../../../utils/format';
 import { styles } from '@/styles/loyalty';
-
 const loyaltyTiers = [
   {
     id: 'tugocare',
@@ -59,10 +63,30 @@ const loyaltyTiers = [
 
 export default function LoyaltyScreen() {
   const router = useRouter();
+  const { session } = useAuth();
   const { profile } = useProfile();
+  
+  const getUserStatsCallback = useCallback((userId: number) => api.tugocare.getUserStats(userId), []);
+  
+  const { 
+    data: userStatsData, 
+    error: userStatsError, 
+    loading: userStatsLoading,
+    execute: fetchUserStats 
+  } = useApi(getUserStatsCallback);
   
   // For demo purposes, using the first tier as current tier
   const currentTier = loyaltyTiers[0];
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      // Convert user ID to number - assuming it's a numeric string
+      const userId = parseInt(session.user.id, 10);
+      if (!isNaN(userId)) {
+        fetchUserStats(userId);
+      }
+    }
+  }, [session?.user?.id, fetchUserStats]);
 
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -70,6 +94,19 @@ export default function LoyaltyScreen() {
     } else {
       router.replace('/(tabs)/profile');
     }
+  };
+
+  const getTotalSpending = () => {
+    if (userStatsLoading) {
+      return 'Đang tải...';
+    }
+    
+    if (userStatsError || !userStatsData?.data || userStatsData.data.length === 0) {
+      return '0 VNĐ';
+    }
+    
+    const userStat = userStatsData.data[0];
+    return `${formatPrice(userStat.total_12m_vnd)} VNĐ`;
   };
 
   return (
@@ -102,7 +139,10 @@ export default function LoyaltyScreen() {
           
           <View style={styles.spendingContainer}>
             <Text style={styles.spendingLabel}>Tổng chi tiêu (12 tháng gần nhất)</Text>
-            <Text style={styles.spendingValue}>15.000.000 VNĐ</Text>
+            <View style={styles.spendingValueContainer}>
+              {userStatsLoading && <Loader size={16} color="#8B5CF6" />}
+              <Text style={styles.spendingValue}>{getTotalSpending()}</Text>
+            </View>
           </View>
         </View>
 
