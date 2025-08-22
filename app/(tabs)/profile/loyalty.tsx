@@ -71,14 +71,15 @@ export default function LoyaltyScreen() {
   useEffect(() => {
     // Fetch tiers data
     fetchTiers();
-    
+    console.log('Fetching tiers data...');
     // Fetch user stats if user is logged in
     if (session?.user?.id) {
       // Convert user ID to number - assuming it's a numeric string
-      const userId = parseInt(session.user.id, 10);
-      if (!isNaN(userId)) {
+      const userId = session.user.id
+      console.log('User ID:', userId);
+      // if (!isNaN(userId)) {
         fetchUserStats(userId);
-      }
+      // }
     }
   }, [session?.user?.id, fetchUserStats, fetchTiers]);
 
