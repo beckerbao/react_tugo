@@ -132,8 +132,8 @@ export default function LoyaltyScreen() {
             color={currentTierProps.color}
             backgroundColor={currentTierProps.backgroundColor}
             fullName={profile?.full_name || 'Bao Nguyen'}
-            cardNumber="1234567890123456"
-            qrValue="TUGO_MEMBER_1234567890123456"
+            cardNumber={userStatsData?.data?.[0]?.card_number || "N/A"}
+            qrValue={userStatsData?.data?.[0]?.card_number ? `TUGO_MEMBER_${userStatsData.data[0].card_number}` : "N/A"}
           />
 
           <Text style={styles.introTitle}>TugoCare</Text>
@@ -170,7 +170,7 @@ export default function LoyaltyScreen() {
               <View key={tier.id} style={[styles.tierCard, { backgroundColor: tierProps.backgroundColor }]}> 
                 <View style={styles.tierHeader}>
                   <View style={[styles.iconContainer, { backgroundColor: tierProps.color }]}> 
-                    <Ionicons name={iconName} size={24} color="#FFFFFF" />
+                    <Ionicons name={iconName as any} size={24} color="#FFFFFF" />
                   </View>
                   <View style={styles.tierInfo}>
                     <Text style={[styles.tierName, { color: tierProps.color }]}>{tier.name}</Text>

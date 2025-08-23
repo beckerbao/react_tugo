@@ -13,7 +13,7 @@ import Animated, {
 import QRCode from 'react-native-qrcode-svg';
 
 interface LoyaltyCardProps {
-  tier: 'tugocare' | 'tugocare-plus' | 'tugocare-premium';
+  tier: string;
   tierName: string;
   tierSubtitle: string;
   color: string;
@@ -86,7 +86,7 @@ export default function LoyaltyCard({
               <Text style={[styles.logo, { color }]}>TUGO</Text>
             </View>
             <View style={[styles.iconContainer, { backgroundColor: color }]}>
-              <Ionicons name={iconName} size={20} color="#FFFFFF" />
+              <Ionicons name={iconName as any} size={20} color="#FFFFFF" />
             </View>
           </View>
 

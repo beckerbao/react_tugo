@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { PostsResponse } from '@/types/api';
+import { PostsResponse, UserStats, UserVoucher } from '@/types/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
 import uuid from 'react-native-uuid';
@@ -20,16 +20,6 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-export interface TugoCareUserStat {
-  user_id: number;
-  total_12m_vnd: number;
-}
-
-export interface TugoCareUserStatsResponse {
-  status: string;
-  message: string;
-  data: TugoCareUserStat[];
-}
 
 export interface TugoCareBenefit {
   id: number;
@@ -431,7 +421,7 @@ export const api = {
   },
   tugocare: {
     getUserStats: (userId: number) => 
-      fetchApiTugoCare<TugoCareUserStatsResponse>(`/tugocare/user-stats?user_ids=${userId}`),
+      fetchApiTugoCare<ApiResponse<UserStats[]>>(`/tugocare/user-stats?user_ids=${userId}`),
     getTiers: () => 
       fetchApiTugoCare<TugoCareTearsResponse>(`/tugocare/tiers`),
   },

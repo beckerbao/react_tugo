@@ -23,3 +23,19 @@ export interface PostsResponse {
   page_size: number;
   posts: Post[];
 }
+
+export interface UserStats {
+  user_id: number;
+  total_12m_vnd: number;
+  current_tier: number;
+  card_number: string;
+}
+
+export interface UserVoucher {
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  expiry_date: string;
+  status: string;
+}
