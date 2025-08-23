@@ -5,7 +5,8 @@ import { supabase } from './supabase';
 import uuid from 'react-native-uuid';
 
 const API_BASE_URL = 'https://api.review.tugo.com.vn/api/v1';
-const TUGO_CARE_API_BASE_URL = 'https://36bcaa2bfe9c.ngrok-free.app/api/v1';
+// const TUGO_CARE_API_BASE_URL = 'https://36bcaa2bfe9c.ngrok-free.app/api/v1';
+const TUGO_CARE_API_BASE_URL = 'https://tugocareapi.dulichtugo.vn/api/v1';
 // const API_BASE_URL = 'http://localhost:9090/api/v1';
 // const API_BASE_URL = 'http://192.168.2.1:9090/api/v1';
 // const API_BASE_URL = 'http://192.168.31.93:9090/api/v1';

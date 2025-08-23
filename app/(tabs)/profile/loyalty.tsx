@@ -22,14 +22,14 @@ const getTierDisplayProps = (code: string) => {
         icon: Award,
       };
     case 'gold':
-    case 'gold2':
+    case 'tugocareplus':
       return {
         subtitle: 'Thân Thiết',
         color: '#FFD700',
         backgroundColor: '#FFFBF0',
         icon: Star,
       };
-    case 'premium':
+    case 'tugocarepro':
       return {
         subtitle: 'Tri kỷ',
         color: '#660066',

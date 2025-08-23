@@ -48,7 +48,9 @@ export default {
           ],
           category: ["BROWSABLE", "DEFAULT"]
         }
-      ]
+      ],
+      "compileSdkVersion": 35,
+      "targetSdkVersion": 35
     },
     web: {
       bundler: "metro",
