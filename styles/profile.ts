@@ -135,4 +135,45 @@ export const styles = StyleSheet.create({
       fontSize: 16,
       color: '#FFFFFF',
     },
+    loyaltySection: {
+      marginHorizontal: 16,
+      marginVertical: 16,
+      backgroundColor: '#F8F4FF',
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: '#E0E7FF',
+    },
+    loyaltyContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+    },
+    loyaltyIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: '#EDE9FE',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 16,
+    },
+    loyaltyInfo: {
+      flex: 1,
+    },
+    loyaltyTitle: {
+      fontFamily: 'Inter-SemiBold',
+      fontSize: 16,
+      color: '#1F2937',
+      marginBottom: 4,
+    },
+    loyaltyTier: {
+      fontFamily: 'Inter-Regular',
+      fontSize: 14,
+      color: '#8B5CF6',
+    },
+    loyaltyArrow: {
+      fontSize: 24,
+      color: '#8B5CF6',
+      opacity: 0.7,
+    },
   });

@@ -23,7 +23,14 @@ This project is a React Native application built with **Expo** and using **Expo 
 *   `utils`: Utility functions (format.ts).
 *   Root level files: configuration files (**app.json**, babel.config.js, **eas.json**, tsconfig.json), dependency files (package.json, package-lock.json), documentation/notes (README.md, knowissue.md, prompt.md, tasklist.md), and other files (pandoc-3.6.4-x86_64-macOS.pkg).
 
+**Apple ID Login:**
 
+Apple ID login is handled in the following files:
+
+*   `app/login.tsx`: Contains the UI for the Apple Authentication button and calls the `handleAppleSignIn` function.
+*   `hooks/useAuth.ts`: Contains the `signInWithApple` function, which uses `expo-apple-authentication` and `supabase.auth.signInWithIdToken` for authentication. This is the primary file for Apple ID login logic.
+
+When integrating Facebook Login and Google OAuth2, these files will likely need to be updated to include the new authentication methods and UI elements.
 
 Tôi đã gửi file. Bạn hãy:
 

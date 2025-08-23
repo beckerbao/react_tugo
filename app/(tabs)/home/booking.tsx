@@ -2,7 +2,8 @@ import { useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Platform, ActivityIndicator, KeyboardAvoidingView, ScrollView } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Calendar } from 'lucide-react-native';
+// TODO: verify icon mapping for: Calendar
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { styles } from '@/styles/booking';
 import PopUpModal from '@/components/PopUpModal';
@@ -71,7 +72,7 @@ export default function BookingScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
-          <ArrowLeft size={24} color="#8B5CF6" />
+          <Ionicons name="arrow-back" size={24} color="#8B5CF6" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Đăng ký tư vấn</Text>
         <View style={styles.headerButton} />
@@ -131,7 +132,7 @@ export default function BookingScreen() {
             <Text style={styles.dateInputText}>
               {formatVietnameseDate(formData.departureDate)}
             </Text>
-            <Calendar size={20} color="#6B7280" />
+            <Ionicons name="calendar-outline" size={20} color="#6B7280" />
           </TouchableOpacity>
 
         </View>

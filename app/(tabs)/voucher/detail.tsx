@@ -11,15 +11,12 @@ import {
 } from 'react-native';                                                                                                                                                                         
 import { SafeAreaView } from 'react-native-safe-area-context';                                                                                                                                 
 import { useRouter, useLocalSearchParams } from 'expo-router';                                                                                                                                 
-import {                                                                                                                                                                                       
-  ArrowLeft,                                                                                                                                                                                   
-  Clock,                                                                                                                                                                                       
-  Tag,                                                                                                                                                                                         
-  Info,                                                                                                                                                                                        
-  XCircle,                                                                                                                                                                                     
-  CheckCircle,                                                                                                                                                                                 
-  Clipboard,                                                                                                                                                                                   
-} from 'lucide-react-native';                                                                                                                                                                  
+// TODO: verify icon mapping for: Clock
+// TODO: verify icon mapping for: Tag
+// TODO: verify icon mapping for: Info
+// TODO: verify icon mapping for: XCircle
+// TODO: verify icon mapping for: Clipboard
+import { Ionicons } from '@expo/vector-icons';
 import { UserVoucher, api, ApiError } from '@/services/api';                                                                                                                                   
 import { useAuth } from '@/hooks/useAuth';   
 import { styles } from '@/styles/voucherdetail';                                                                                                                                                  
@@ -60,7 +57,7 @@ export default function VoucherDetailScreen() {
             onPress={() => router.back()}                                                                                                                                                      
             style={styles.headerButton}                                                                                                                                                        
           >                                                                                                                                                                                    
-            <ArrowLeft size={24} color="#8B5CF6" />                                                                                                                                            
+            <Ionicons name="arrow-back" size={24} color="#8B5CF6" />
           </TouchableOpacity>                                                                                                                                                                  
           <Text style={styles.headerTitle}>Error</Text>                                                                                                                                        
           <View style={styles.headerButton} />                                                                                                                                                 
@@ -165,9 +162,9 @@ export default function VoucherDetailScreen() {
     <SafeAreaView style={styles.container}>                                                                                                                                                    
       {/* Custom Header */}                                                                                                                                                                    
       <View style={styles.header}>                                                                                                                                                             
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>                                                                                                           
-          <ArrowLeft size={24} color="#8B5CF6" />                                                                                                                                              
-        </TouchableOpacity>                                                                                                                                                                    
+        <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
+          <Ionicons name="arrow-back" size={24} color="#8B5CF6" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Voucher Details</Text>                                                                                                                                
         <View style={styles.headerButton} />                                                                                                                                                   
       </View>                                                                                                                                                                                  
@@ -179,14 +176,14 @@ export default function VoucherDetailScreen() {
             <Text style={styles.voucherName}>{voucher.voucher_name}</Text>                                                                                                                     
             <View style={styles.statusIconsContainer}>                                                                                                                                         
               {voucher.status === 'expired' && (                                                                                                                                               
-                <XCircle size={20} color="#EF4444" style={styles.statusIcon} />                                                                                                                
+                <Ionicons name="close-circle-outline" size={20} color="#EF4444" style={styles.statusIcon} />
               )}                                                                                                                                                                               
               {voucher.status === 'active' && voucher.claim_status === 'claimed' && (                                                                                                          
-                <Tag size={20} color="#10B981" style={styles.statusIcon} />                                                                                                                    
+                <Ionicons name="pricetag-outline" size={20} color="#10B981" style={styles.statusIcon} />
               )}                                                                                                                                                                               
               {voucher.usage_status === 'used' && (                                                                                                                                            
-                // Use Clipboard icon to indicate voucher has been used                                                                                                                        
-                <Clipboard size={20} color="#6B7280" style={styles.statusIcon} />                                                                                                              
+                // Use Clipboard icon to indicate voucher has been used
+                <Ionicons name="clipboard-outline" size={20} color="#6B7280" style={styles.statusIcon} />
               )}                                                                                                                                                                               
             </View>                                                                                                                                                                            
           </View>                                                                                                                                                                              
@@ -198,7 +195,7 @@ export default function VoucherDetailScreen() {
         {/* Voucher Code */}                                                                                                                                                                   
         <View style={styles.section}>                                                                                                                                                          
           <View style={styles.sectionHeader}>                                                                                                                                                  
-            <Tag size={18} color="#4B5563" />                                                                                                                                                  
+            <Ionicons name="pricetag-outline" size={18} color="#4B5563" />
             <Text style={styles.sectionTitle}>Code</Text>                                                                                                                                      
           </View>                                                                                                                                                                              
           <View style={styles.codeContainer}>                                                                                                                                                  
@@ -209,7 +206,7 @@ export default function VoucherDetailScreen() {
         {/* Validity */}                                                                                                                                                                       
         <View style={styles.section}>                                                                                                                                                          
           <View style={styles.sectionHeader}>                                                                                                                                                  
-            <Clock size={18} color="#4B5563" />                                                                                                                                                
+            <Ionicons name="time-outline" size={18} color="#4B5563" />
             <Text style={styles.sectionTitle}>Validity</Text>                                                                                                                                  
           </View>                                                                                                                                                                              
           <Text style={styles.sectionText}>                                                                                                                                                    
@@ -220,7 +217,7 @@ export default function VoucherDetailScreen() {
         {/* Applicable For */}                                                                                                                                                                 
         <View style={styles.section}>                                                                                                                                                          
           <View style={styles.sectionHeader}>                                                                                                                                                  
-            <Info size={18} color="#4B5563" />                                                                                                                                                 
+            <Ionicons name="information-circle-outline" size={18} color="#4B5563" />
             <Text style={styles.sectionTitle}>Applicable For</Text>                                                                                                                            
           </View>                                                                                                                                                                              
           <Text style={styles.sectionText}>{voucher.available_for}</Text>                                                                                                                      
@@ -229,7 +226,7 @@ export default function VoucherDetailScreen() {
         {/* Terms and Conditions */}                                                                                                                                                           
         <View style={styles.section}>                                                                                                                                                          
           <View style={styles.sectionHeader}>                                                                                                                                                  
-            <Info size={18} color="#4B5563" />                                                                                                                                                 
+            <Ionicons name="information-circle-outline" size={18} color="#4B5563" />
             <Text style={styles.sectionTitle}>Terms & Conditions</Text>                                                                                                                        
           </View>                                                                                                                                                                              
           <Text style={styles.sectionText}>{voucher.term_condition}</Text>                                                                                                                     

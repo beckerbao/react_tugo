@@ -1,5 +1,6 @@
+// TODO: verify icon mapping for: X
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { X } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 interface LoginPromptModalProps {
   visible: boolean;
@@ -18,7 +19,7 @@ export default function LoginPromptModal({
     <View style={styles.overlay}>
       <View style={styles.container}>
         <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <X size={24} color="#1F2937" />
+          <Ionicons name="close" size={24} color="#1F2937" />
         </TouchableOpacity>
 
         <View style={styles.content}>

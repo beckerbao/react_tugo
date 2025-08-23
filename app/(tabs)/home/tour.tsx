@@ -1,6 +1,8 @@
+// TODO: verify icon mapping for: MapPin
+// TODO: verify icon mapping for: Clock
 import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, MapPin, Clock } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import NotificationBell from '@/components/NotificationBell';
 import { useEffect } from 'react';
@@ -54,7 +56,7 @@ export default function TourScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
-            <ArrowLeft size={24} color="#8B5CF6" />
+            <Ionicons name="arrow-back" size={24} color="#8B5CF6" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Loading...</Text>
           <NotificationBell count={3} />
@@ -71,7 +73,7 @@ export default function TourScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
-            <ArrowLeft size={24} color="#8B5CF6" />
+            <Ionicons name="arrow-back" size={24} color="#8B5CF6" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Error</Text>
           <NotificationBell count={3} />
@@ -115,11 +117,11 @@ export default function TourScreen() {
           
           <View style={styles.infoRow}>
             <View style={styles.infoItem}>
-              <MapPin size={20} color="#6B7280" />
+              <Ionicons name="location-outline" size={20} color="#6B7280" />
               <Text style={styles.infoText}>{tour.type}</Text>
             </View>
             <View style={styles.infoItem}>
-              <Clock size={20} color="#6B7280" />
+              <Ionicons name="time-outline" size={20} color="#6B7280" />
               <Text style={styles.infoText}>{tour.duration}</Text>
             </View>
           </View>

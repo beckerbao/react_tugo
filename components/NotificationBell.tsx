@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Bell } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -16,7 +16,7 @@ export default function NotificationBell({ color = '#8B5CF6' }: NotificationBell
       style={styles.container}
       onPress={() => router.push('/notifications')}
     >
-      <Bell size={24} color={color} />
+      <Ionicons name="notifications-outline" size={24} color={color} />
       {unreadCount > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>

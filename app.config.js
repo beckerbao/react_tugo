@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "Du lịch Tugo",
     slug: "du-lich-tugo",
-    version: "1.0.6",
+    version: "1.0.7",
     orientation: "portrait",
     icon: "./assets/images/icon6.png",
     scheme: "tugo",
@@ -48,7 +48,9 @@ export default {
           ],
           category: ["BROWSABLE", "DEFAULT"]
         }
-      ]
+      ],
+      "compileSdkVersion": 35,
+      "targetSdkVersion": 35
     },
     web: {
       bundler: "metro",

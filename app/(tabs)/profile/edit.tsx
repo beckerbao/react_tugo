@@ -1,7 +1,8 @@
+// TODO: verify icon mapping for: Camera
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Camera } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useProfile } from '@/hooks/useProfile';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -64,7 +65,7 @@ export default function EditProfileScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
-          <ArrowLeft size={24} color="#8B5CF6" />
+          <Ionicons name="arrow-back" size={24} color="#8B5CF6" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Cập nhật tài khoản</Text>
         <View style={styles.headerButton} />
@@ -82,7 +83,7 @@ export default function EditProfileScreen() {
               style={styles.avatar}
             />
             {/* <TouchableOpacity style={styles.cameraButton}>
-              <Camera size={20} color="#FFFFFF" />
+              <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
             </TouchableOpacity> */}
           </View>
         </View>

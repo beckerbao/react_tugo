@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Chrome as Home, Newspaper, Search, Ticket, LogIn, User } from 'lucide-react-native';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function TabLayout() {
@@ -25,28 +25,34 @@ export default function TabLayout() {
         name="home"
         options={{
           title: 'Trang chủ',
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Feather name="home" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="feed"
         options={{
           title: 'Feed',
-          tabBarIcon: ({ color, size }) => <Newspaper size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="newspaper-outline" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="search"
         options={{
           title: 'Tìm kiếm',
-          tabBarIcon: ({ color, size }) => <Search size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="search-outline" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="voucher"
         options={{
           title: 'Vouchers',
-          tabBarIcon: ({ color, size }) => <Ticket size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="ticket-outline" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -54,7 +60,11 @@ export default function TabLayout() {
         options={{
           title: isAuthenticated ? 'Tài khoản' : 'Đăng nhập',
           tabBarIcon: ({ color, size }) =>
-            isAuthenticated ? <User size={size} color={color} /> : <LogIn size={size} color={color} />,
+            isAuthenticated ? (
+              <Ionicons name="person-outline" size={size} color={color} />
+            ) : (
+              <Ionicons name="log-in-outline" size={size} color={color} />
+            ),
           href: isAuthenticated ? '/profile' : '/login',
         }}
       />

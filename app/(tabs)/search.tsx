@@ -1,7 +1,9 @@
+// TODO: verify icon mapping for: MapPin
+// TODO: verify icon mapping for: SearchX
 import { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search as SearchIcon, MapPin, SearchX } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import NotificationBell from '@/components/NotificationBell';
 import { api } from '@/services/api';
@@ -41,7 +43,7 @@ export default function SearchScreen() {
 
   const renderNoResults = () => (
     <View style={styles.noResultsContainer}>
-      <SearchX size={64} color="#9CA3AF" />
+      <Ionicons name="close-circle-outline" size={64} color="#9CA3AF" />
       <Text style={styles.noResultsTitle}>No Results Found</Text>
       <Text style={styles.noResultsDescription}>
         We couldn't find any destinations matching "{searchQuery}"
@@ -64,7 +66,7 @@ export default function SearchScreen() {
       </View>
 
       <View style={styles.searchContainer}>
-        <SearchIcon size={20} color="#6B7280" style={styles.searchIcon} />
+        <Ionicons name="search-outline" size={20} color="#6B7280" style={styles.searchIcon} />
         <TextInput
           placeholder="Search destinations, tours..."
           style={styles.searchInput}
@@ -103,7 +105,7 @@ export default function SearchScreen() {
                 />
                 <View style={styles.destinationContent}>
                   <View style={styles.iconContainer}>
-                    <MapPin size={20} color="#8B5CF6" />
+                    <Ionicons name="location-outline" size={20} color="#8B5CF6" />
                   </View>
                   <View style={styles.destinationInfo}>
                     <Text style={styles.destinationName}>{destination.name}</Text>

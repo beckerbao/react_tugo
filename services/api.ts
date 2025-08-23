@@ -5,6 +5,8 @@ import { supabase } from './supabase';
 import uuid from 'react-native-uuid';
 
 const API_BASE_URL = 'https://api.review.tugo.com.vn/api/v1';
+// const TUGO_CARE_API_BASE_URL = 'https://36bcaa2bfe9c.ngrok-free.app/api/v1';
+const TUGO_CARE_API_BASE_URL = 'https://tugocareapi.dulichtugo.vn/api/v1';
 // const API_BASE_URL = 'http://localhost:9090/api/v1';
 // const API_BASE_URL = 'http://192.168.2.1:9090/api/v1';
 // const API_BASE_URL = 'http://192.168.31.93:9090/api/v1';
@@ -16,6 +18,44 @@ export interface ApiResponse<T> {
   status: string;
   message: string;
   data: T;
+}
+
+export interface TugoCareUserStat {
+  user_id: number;
+  total_12m_vnd: number;
+}
+
+export interface TugoCareUserStatsResponse {
+  status: string;
+  message: string;
+  data: TugoCareUserStat[];
+}
+
+export interface TugoCareBenefit {
+  id: number;
+  code: string;
+  name: string;
+  kind: string;
+  description: string;
+}
+
+export interface TugoCareTier {
+  id: number;
+  code: string;
+  name: string;
+  rank_order: number;
+  min_spend_12m: number;
+  grace_days: number;
+  metadata: any;
+  created_at: string;
+  updated_at: string;
+  benefits: TugoCareBenefit[];
+}
+
+export interface TugoCareTearsResponse {
+  status: string;
+  message: string;
+  data: TugoCareTier[];
 }
 
 export interface Hero {
@@ -173,7 +213,7 @@ async function fetchApi<T>(
       headers: {
         ...defaultHeaders,
         ...options.headers,
-        Authorization: `Bearer ${token}`, // ✅ thêm dòng này
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -193,8 +233,6 @@ async function fetchApi<T>(
       );
     }
 
-    // Assuming your API wraps successful responses like { status: 'success', data: ... }                                                                                                      
-    // Adjust this logic if your API structure is different                                                                                                                                    
     if (!response.ok || (data.status && data.status !== 'success' && data.status !== 200)) {                                                                                                   
       // Try to get a meaningful message from the response body                                                                                                                               
       const errorMessage = data?.message || data?.error || 'An error occurred';                                                                                                               
@@ -205,6 +243,90 @@ async function fetchApi<T>(
         JSON.stringify(data) // Include full response data for debugging                                                                                                                      
       );                                                                                                                                                                                      
    }
+
+    return data as T;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    
+    // Handle network errors
+    if (error instanceof TypeError && error.message === 'Network request failed') {
+      throw new ApiError(
+        'Network connection failed. Please check your internet connection.',
+        0,
+        'NETWORK_ERROR'
+      );
+    }
+
+    throw new ApiError(
+      error instanceof Error ? error.message : 'An unexpected error occurred',
+      0,
+      'UNKNOWN_ERROR'
+    );
+  }
+}
+
+async function fetchApiTugoCare<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
+  try {
+     // Lấy token từ Supabase session hoặc từ anonymous_device_id
+    const session = (await supabase.auth.getSession()).data.session;
+    let token = '';
+
+    if (session?.access_token) {
+      token = session.access_token;
+    } else {
+      let anonymousId = await AsyncStorage.getItem('@anonymous_device_id');
+      
+      if (!anonymousId) {
+        anonymousId = uuid.v4() as string;
+        await AsyncStorage.setItem('@anonymous_device_id', anonymousId);
+      }
+
+      token = `anonymous:${anonymousId}`;
+    } 
+
+    console.log('Token:', token);
+
+    console.log('API BASE URL:', API_BASE_URL);
+    
+    const response = await fetch(`${TUGO_CARE_API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        ...defaultHeaders,
+        ...options.headers,
+         Authorization: `Bearer ${token}`,
+        'ngrok-skip-browser-warning': '1'
+      },
+    });
+
+    // Get the raw response text first
+    const responseText = await response.text();
+
+    // Try to parse as JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      throw new ApiError(
+        'Failed to parse response as JSON',
+        response.status,
+        'PARSE_ERROR',
+        responseText
+      );
+    }
+
+    if (!response.ok) {
+      throw new ApiError(
+        data.message || 'An error occurred',
+        response.status,
+        data.code,
+        JSON.stringify(data)
+      );
+    }
 
     return data as T;
   } catch (error) {
@@ -266,7 +388,7 @@ export const api = {
     getTours: (destinationId: string | number) =>
       fetchApi<ApiResponse<DestinationDetail>>(`/destination/tours?destination_id=${destinationId}`),
   },
-  // Add the new vouchers endpoint                                                                                                                                                             
+    // Add the new vouchers endpoint                                                                                                                                                             
   vouchers: {
     // Update the expected type parameter for fetchApi.
     // fetchApi returns the `data` field of ApiResponse, which is UserVoucher[] here.
@@ -306,21 +428,11 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(payload),
       }),
-  }
+  },
+  tugocare: {
+    getUserStats: (userId: number) => 
+      fetchApiTugoCare<TugoCareUserStatsResponse>(`/tugocare/user-stats?user_ids=${userId}`),
+    getTiers: () => 
+      fetchApiTugoCare<TugoCareTearsResponse>(`/tugocare/tiers`),
+  },
 };
-
-// Define the structure of a single voucher from the API based on the new response
-export interface UserVoucher {
-  id: number;
-  voucher_name: string;
-  term_condition: string; // Represents the discount/offer details
-  valid_until: string;
-  code: string;
-  available_for: string;
-  claim_status: 'claimed' | 'not_claimed';
-  status: 'active' | 'expired' | 'used'; // Assuming 'used' might be a status
-  usage_status: 'used' | 'not_used';
-  // Add any other relevant fields from your API if needed
-}
-
-// UserVouchersResponse is no longer needed as the data is directly an array in the ApiResponse
