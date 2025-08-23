@@ -7,8 +7,8 @@ const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
 
 // ✅ check môi trường trước khi truyền AsyncStorage
-// const isBrowser = typeof window !== 'undefined';
-const isBrowser = true; // Giả sử bạn đang chạy trên môi trường web
+const isBrowser = typeof window !== 'undefined';
+// const isBrowser = true; // Giả sử bạn đang chạy trên môi trường web
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {

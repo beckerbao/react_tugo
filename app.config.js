@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "Du lịch Tugo",
     slug: "du-lich-tugo",
-    version: "1.0.6",
+    version: "1.0.7",
     orientation: "portrait",
     icon: "./assets/images/icon6.png",
     scheme: "tugo",
@@ -16,7 +16,7 @@ export default {
       backgroundColor: "#ffffff"
     },
     ios: {
-      bundleIdentifier: "com.tugo.travel.dev",
+      bundleIdentifier: "com.tugo.travel.vn",
       supportsTablet: false,
       usesAppleSignIn: true,
       associatedDomains: ["applinks:review.tugo.com.vn"],
@@ -26,7 +26,7 @@ export default {
       }
     },
     android: {
-      package: "com.tugo.travel.dev",
+      package: "com.tugo.travel.vn",
       versionCode: 1,
       adaptiveIcon: {
         foregroundImage: "./assets/images/icon6.png",

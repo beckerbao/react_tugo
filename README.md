@@ -14,7 +14,15 @@ npx expo run:android
 NODE_ENV=production eas build --platform android --profile local --local
 
 ======= BUILD CHẠY TRÊN THIẾT BỊ THẬT VỚI EXPO hoac tren EMULATOR ========
+# Đổi IP mà Metro sẽ broadcast cho app
+REACT_NATIVE_PACKAGER_HOSTNAME=192.168.1.200 \
+# (tuỳ chọn) Đổi port Metro nếu bạn muốn cố định
+RCT_METRO_PORT=8082 \
+npx expo run:ios --device
+
+npx expo start --dev-client --host tunnel -- dam bao chay dung IP
 npx expo run:ios --device >> build thanh app doc lap
+
 ======== XOA EMULATOR =====
 xcrun simctl shutdown all
 xcrun simctl erase all
