@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { NotificationResponse } from 'expo-notifications';
-import { DEFAULT_ACTION_IDENTIFIER } from 'expo-notifications'; // Import the constant
+import { DEFAULT_ACTION_IDENTIFIER } from 'expo-notifications';
 import { Platform } from 'react-native';
 import { supabase } from '@/services/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,18 +21,12 @@ if (Platform.OS !== 'web') {
 }
 
 const DEVICE_TOKEN_KEY = '@device_token';
-// const LAST_NOTIFICATION_ID = '@last_notification_id';
-// const processingNotificationId = useRef<string | null>(null);
-
-// let notificationListenerInstance: Notifications.Subscription | null = null;
-let responseListenerInstance: Notifications.Subscription | null = null;
+const LAST_NOTIFICATION_ID = '@last_notification_id';
 let hasInitialized = false;
 
 export function usePushNotifications() {
-  if (hasInitialized) {
-    console.log('[usePushNotifications] already initialized — skip setup');
-
-    // Trả về giá trị rỗng (dummy) nếu hook bị gọi lại
+  // Skip initialization if already done or in SSR
+  if (hasInitialized || (Platform.OS === 'web' && typeof window === 'undefined')) {
     return {
       expoPushToken: null,
       notification: null,
@@ -56,15 +50,16 @@ export function usePushNotifications() {
   const isMounted = useRef(true);
   const lastNotificationId = useRef<string | null>(null);
   const initialNotificationHandled = useRef(false);
-  // const processedNotificationIdentifierRef = useRef<string | null>(null); // Track processed response
-  const hasSentToken = useRef(false); // tránh gửi nhiều lần trong cùng session
+  const hasSentToken = useRef(false);
 
   const notificationListenerRef = useRef<Notifications.Subscription | null>(null);
   const responseListenerRef = useRef<Notifications.Subscription | null>(null);
 
-
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    // Skip effect in SSR
+    if (Platform.OS === 'web' && typeof window === 'undefined') {
+      return;
+    }
 
     isMounted.current = true;
     
@@ -74,39 +69,23 @@ export function usePushNotifications() {
 
     const initializeNotifications = async () => {
       try {
-        // Load last *received* notification ID (still useful for received listener)
         lastNotificationId.current = await AsyncStorage.getItem(LAST_NOTIFICATION_ID);
         
         await checkPermissionAndToken();
 
-        // Only set up listeners if they don't exist
-        // if (!notificationListenerInstance) {
-        //   notificationListenerInstance = Notifications.addNotificationReceivedListener(
-            // notification => {              
         if (!notificationListenerRef.current) {
           notificationListenerRef.current = Notifications.addNotificationReceivedListener(notification => {
             const notificationId = notification.request.identifier;
 
-              console.log('Notification Received:', notification);
-              console.log('Received Notification ID:', notificationId);
+            console.log('Notification Received:', notification);
+            console.log('Received Notification ID:', notificationId);
               
-              // Prevent processing duplicates *received* while app is open      
-              // if (notificationId === lastNotificationId.current) { 
-              //   return;
-              // }
-
-              if (isMounted.current) {
-                setNotification(notification);
-                // lastNotificationId.current = notificationId;
-                // AsyncStorage.setItem(LAST_NOTIFICATION_ID, notificationId);
-              }
+            if (isMounted.current) {
+              setNotification(notification);
             }
-          );
+          });
         }
 
-        // if (!responseListenerInstance) {
-        //   responseListenerInstance = Notifications.addNotificationResponseReceivedListener(
-        //     response => {
         if (!responseListenerRef.current) {
           responseListenerRef.current = Notifications.addNotificationResponseReceivedListener(
             response => {
@@ -119,12 +98,11 @@ export function usePushNotifications() {
           );
         }
 
-        // Check for initial notification only once
-        if (!!initialNotificationHandled.current && Platform.OS !== 'web') {
+        if (!initialNotificationHandled.current && Platform.OS !== 'web') {
           initialNotificationHandled.current = true;
           const initialNotification = await Notifications.getLastNotificationResponseAsync();
           console.log('Initial Notification Response:', initialNotification);
-          // Chỉ xử lý nếu có response và actionIdentifier là 'default'
+          
           if (
             initialNotification &&
             isMounted.current &&
@@ -133,16 +111,12 @@ export function usePushNotifications() {
             console.log('[PushNotifications] Handling Initial Notification Tap via getLastNotificationResponseAsync...'); 
             handleNotificationTap(initialNotification, true);
           } else {
-            // console.log(
-            //   'Initial notification response ignored due to actionIdentifier not being default or missing'
-            // );
             console.log('[PushNotifications] Initial notification ignored. Details:');
             console.log(`  - initialNotification exists: ${!!initialNotification}`); 
             if (initialNotification) {                                                     
-              console.log(`  - actionIdentifier:                                          
-              ${initialNotification.actionIdentifier}`);                                                
+              console.log(`  - actionIdentifier: ${initialNotification.actionIdentifier}`);                                                
               console.log(`  - DEFAULT_ACTION_IDENTIFIER: ${DEFAULT_ACTION_IDENTIFIER}`); 
-              console.log(`  - Identifiers match: ${initialNotification.actionIdentifier=== DEFAULT_ACTION_IDENTIFIER}`);                                                         
+              console.log(`  - Identifiers match: ${initialNotification.actionIdentifier === DEFAULT_ACTION_IDENTIFIER}`);                                                         
             }                                                                              
             console.log(`  - isMounted.current: ${isMounted.current}`); 
           }
@@ -156,16 +130,14 @@ export function usePushNotifications() {
 
     return () => {
       isMounted.current = false;
-      // Gỡ listener đúng cách
       notificationListenerRef.current?.remove();
       notificationListenerRef.current = null;
-
       responseListenerRef.current?.remove();
       responseListenerRef.current = null;
     };
   }, []);
 
-  const hasPromptedForDenied = useRef(false); // giữ trạng thái trong phiên
+  const hasPromptedForDenied = useRef(false);
   const [permissionWasDenied, setPermissionWasDenied] = useState(false);
 
   const checkPermissionAndToken = async () => {
@@ -187,7 +159,7 @@ export function usePushNotifications() {
       } else if (existingStatus === 'denied' && !hasPromptedForDenied.current) {
         hasPromptedForDenied.current = true;
         setPermissionWasDenied(true);
-        setShowPermissionModal(true); // chỉ hiển thị 1 lần mỗi phiên
+        setShowPermissionModal(true);
       }
     } catch (error) {
       console.error('Error checking permissions:', error);
@@ -235,7 +207,7 @@ export function usePushNotifications() {
   };
 
   const registerDevice = async (token: string, userId?: string) => {
-    if (typeof window === 'undefined') return;
+    if (Platform.OS === 'web' && typeof window === 'undefined') return;
 
     if (isRegistering.current || !isMounted.current) {
       return;
@@ -259,50 +231,45 @@ export function usePushNotifications() {
 
       if (existingDevice?.id) {
         await AsyncStorage.setItem(DEVICE_TOKEN_KEY, token);
-        await AsyncStorage.setItem('@anonymous_device_id', existingDevice.id); // ✅ ghi lại id nếu đã có
+        await AsyncStorage.setItem('@anonymous_device_id', existingDevice.id);
       }
 
       if (!existingDevice) {
         const { data: insertedDevice, error: insertError } = await supabase
           .from('anonymous_devices')
           .insert({ push_token: token })
-          .select('id')     // ✅ yêu cầu trả về id
-          .single();        // ✅ chỉ lấy 1 record
+          .select('id')
+          .single();
 
         if (insertError) throw insertError;
 
         if (insertedDevice?.id) {
-          await AsyncStorage.setItem('@anonymous_device_id', insertedDevice.id); // ✅ lưu id mới
+          await AsyncStorage.setItem('@anonymous_device_id', insertedDevice.id);
         }
 
         await AsyncStorage.setItem(DEVICE_TOKEN_KEY, token);
       }
     } catch (error) {
-      // console.error('Error registering device:', error);
+      console.error('Error registering device:', error);
     } finally {
       isRegistering.current = false;
     }
   };
-  
-  const LAST_NOTIFICATION_ID = '@last_notification_id';
-  const processingNotificationId = useRef<string | null>(null);
 
   const handleNotificationTap = async (
     response: NotificationResponse | null,
     isInitial: boolean = false
   ) => {
-    if (typeof window === 'undefined') return;
+    if (Platform.OS === 'web' && typeof window === 'undefined') return;
     
     const notificationId = response?.notification.request.identifier;
     if (!notificationId) return;
 
-    // 🚫 Tránh trùng xử lý trong cùng phiên
     if (processingNotificationId.current === notificationId) {
       console.log('[handleNotificationTap] Already processing in-memory, skipping:', notificationId);
       return;
     }
 
-    // 🚫 Tránh xử lý lại nếu đã xử lý trước đó (lưu trong AsyncStorage)
     const alreadyHandledId = await AsyncStorage.getItem(LAST_NOTIFICATION_ID);
     if (alreadyHandledId === notificationId) {
       console.log('[handleNotificationTap] Skipping duplicate notification tap', notificationId);
@@ -354,7 +321,6 @@ export function usePushNotifications() {
           break;
       }
 
-      // ✅ Sau khi xử lý xong mới ghi vào storage
       await AsyncStorage.setItem(LAST_NOTIFICATION_ID, notificationId);
     } catch (err) {
       console.error('[handleNotificationTap] Error:', err);
@@ -362,8 +328,6 @@ export function usePushNotifications() {
       processingNotificationId.current = null;
     }
   };
-
-  
 
   const sendPushNotification = async (expoPushToken: string, title: string, body: string, data = {}) => {
     if (Platform.OS === 'web') {
@@ -409,7 +373,6 @@ export function usePushNotifications() {
     }
   };
 
-  // Hàm lấy token từ thiết bị (và xin permission nếu cần)
   const getDeviceToken = async (): Promise<string | null> => {
     if (!Device.isDevice) return null;
 
@@ -434,7 +397,6 @@ export function usePushNotifications() {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
 
-      //log existingStatus
       console.log('Existing status:', existingStatus);
 
       if (existingStatus !== 'granted') {
@@ -452,7 +414,6 @@ export function usePushNotifications() {
 
       if (!token || token === sentTokenRef) return;
 
-      // Gọi API
       await registerDevice(token, userId);
       sentTokenRef = token;
       hasSentToken.current = true;
@@ -462,7 +423,6 @@ export function usePushNotifications() {
       console.error('❌ Failed to register push token:', err);
     }
   };
-  
 
   return {
     expoPushToken,
@@ -473,6 +433,6 @@ export function usePushNotifications() {
     sendPushNotification,
     setShowPermissionModal,    
     getAndRegisterDeviceToken,
-    permissionWasDenied, // ✅ thêm dòng này
+    permissionWasDenied,
   };
 }

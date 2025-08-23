@@ -15,15 +15,11 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: false,
-    ...(isBrowser
-      ? {} // Web: để Supabase tự dùng localStorage hoặc bỏ qua
-      : {
-    storage: {
-        getItem: (key) => AsyncStorage.getItem(key),
-        setItem: (key, value) => AsyncStorage.setItem(key, value),
-        removeItem: (key) => AsyncStorage.removeItem(key),
-      },
-    })
+    storage: isBrowser ? undefined : {
+      getItem: (key) => AsyncStorage.getItem(key),
+      setItem: (key, value) => AsyncStorage.setItem(key, value),
+      removeItem: (key) => AsyncStorage.removeItem(key),
+    },
   },
 });
 
