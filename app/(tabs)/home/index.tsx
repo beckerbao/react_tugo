@@ -8,7 +8,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SplashScreen, useRouter } from 'expo-router';
 import { useFonts, Inter_400Regular, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import NotificationBell from '@/components/NotificationBell';
@@ -133,7 +133,7 @@ export default function HomeScreen() {
           onPress={handleSearchPress}
           activeOpacity={0.7}
         >
-          <Search size={20} color="#6B7280" style={styles.searchIcon} />
+          <Ionicons name="search-outline" size={20} color="#6B7280" style={styles.searchIcon} />
           <Text style={styles.searchPlaceholder}>Bạn tính đi đâu?</Text>
         </TouchableOpacity>
 

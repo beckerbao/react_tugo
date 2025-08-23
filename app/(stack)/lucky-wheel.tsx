@@ -2,7 +2,7 @@ import { Stack, useRouter } from 'expo-router';
 import { View, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useRef, useState } from 'react';
-import { RotateCw, ArrowLeft } from 'lucide-react-native';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { styles } from '@/styles/luckywheel';
 
 export default function LuckyWheelScreen() {
@@ -20,7 +20,7 @@ export default function LuckyWheelScreen() {
               onPress={() => router.back()}
               style={{ paddingLeft: 16 }}
             >
-              <ArrowLeft size={22} color="#007AFF" />
+              <Ionicons name="arrow-back" size={22} color="#007AFF" />
             </TouchableOpacity>
           ),
           headerRight: () => (
@@ -33,7 +33,7 @@ export default function LuckyWheelScreen() {
               }}
               style={{ paddingRight: 16 }}
             >
-              <RotateCw size={22} color="#007AFF" />
+              <Feather name="rotate-cw" size={22} color="#007AFF" />
             </TouchableOpacity>
           ),
           headerTitle: 'Vòng quay may mắn',

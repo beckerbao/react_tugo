@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.2.3",
-    "@expo/vector-icons": "^14.1.0",
+    "@expo/vector-icons": "^latest",
     "@lucide/lab": "^0.1.2",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-native-community/datetimepicker": "8.4.1",
@@ -66,9 +66,6 @@
   "expo": {
     "doctor": {
       "reactNativeDirectoryCheck": {
-        "exclude": [
-          "lucide-react-native"
-        ],
         "listUnknownPackages": false
       }
     }

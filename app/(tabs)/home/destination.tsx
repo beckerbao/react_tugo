@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import NotificationBell from '@/components/NotificationBell';
 import { styles } from '@/styles/destination';
@@ -46,7 +46,7 @@ export default function DestinationScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
-            <ArrowLeft size={24} color="#8B5CF6" />
+            <Ionicons name="arrow-back" size={24} color="#8B5CF6" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Loading...</Text>
           <NotificationBell count={3} />
@@ -63,7 +63,7 @@ export default function DestinationScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
-            <ArrowLeft size={24} color="#8B5CF6" />
+            <Ionicons name="arrow-back" size={24} color="#8B5CF6" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Error</Text>
           <NotificationBell count={3} />

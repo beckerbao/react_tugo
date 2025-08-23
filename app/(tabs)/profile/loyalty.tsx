@@ -1,6 +1,10 @@
+// TODO: verify icon mapping for: Crown
+// TODO: verify icon mapping for: Star
+// TODO: verify icon mapping for: Award
+// TODO: verify icon mapping for: Loader
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Crown, Star, Award, Loader } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useCallback } from 'react';
 import LoyaltyCard from '../../../components/LoyaltyCard';
@@ -19,7 +23,7 @@ const getTierDisplayProps = (code: string) => {
         subtitle: 'Đồng hành',
         color: '#CD7F32',
         backgroundColor: '#FDF2E9',
-        icon: Award,
+        icon: 'trophy-outline',
       };
     case 'gold':
     case 'tugocareplus':
@@ -27,21 +31,21 @@ const getTierDisplayProps = (code: string) => {
         subtitle: 'Thân Thiết',
         color: '#FFD700',
         backgroundColor: '#FFFBF0',
-        icon: Star,
+        icon: 'star-outline',
       };
     case 'tugocarepro':
       return {
         subtitle: 'Tri kỷ',
         color: '#660066',
         backgroundColor: '#F8F4F8',
-        icon: Crown,
+        icon: 'crown-outline',
       };
     default:
       return {
         subtitle: 'Thành viên',
         color: '#8B5CF6',
         backgroundColor: '#F3E8FF',
-        icon: Award,
+        icon: 'trophy-outline',
       };
   }
 };
@@ -113,7 +117,7 @@ export default function LoyaltyScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
-          <ArrowLeft size={24} color="#8B5CF6" />
+          <Ionicons name="arrow-back" size={24} color="#8B5CF6" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Chương trình TugoCare</Text>
         <View style={styles.headerButton} />
@@ -140,7 +144,9 @@ export default function LoyaltyScreen() {
           <View style={styles.spendingContainer}>
             <Text style={styles.spendingLabel}>Tổng chi tiêu (12 tháng gần nhất)</Text>
             <View style={styles.spendingValueContainer}>
-              {userStatsLoading && <Loader size={16} color="#8B5CF6" />}
+              {userStatsLoading && (
+                <Ionicons name="refresh-outline" size={16} color="#8B5CF6" />
+              )}
               <Text style={styles.spendingValue}>{getTotalSpending()}</Text>
             </View>
           </View>
@@ -148,7 +154,7 @@ export default function LoyaltyScreen() {
 
         {tiersLoading ? (
           <View style={styles.loadingContainer}>
-            <Loader size={32} color="#8B5CF6" />
+            <Ionicons name="refresh-outline" size={32} color="#8B5CF6" />
             <Text style={styles.loadingText}>Đang tải thông tin hạng thành viên...</Text>
           </View>
         ) : tiersError ? (
@@ -158,13 +164,13 @@ export default function LoyaltyScreen() {
         ) : (
           tiers.map((tier) => {
             const tierProps = getTierDisplayProps(tier.code);
-            const IconComponent = tierProps.icon;
-            
+            const iconName = tierProps.icon;
+
             return (
-              <View key={tier.id} style={[styles.tierCard, { backgroundColor: tierProps.backgroundColor }]}>
+              <View key={tier.id} style={[styles.tierCard, { backgroundColor: tierProps.backgroundColor }]}> 
                 <View style={styles.tierHeader}>
-                  <View style={[styles.iconContainer, { backgroundColor: tierProps.color }]}>
-                    <IconComponent size={24} color="#FFFFFF" />
+                  <View style={[styles.iconContainer, { backgroundColor: tierProps.color }]}> 
+                    <Ionicons name={iconName} size={24} color="#FFFFFF" />
                   </View>
                   <View style={styles.tierInfo}>
                     <Text style={[styles.tierName, { color: tierProps.color }]}>{tier.name}</Text>

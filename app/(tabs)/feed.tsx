@@ -11,7 +11,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search } from 'lucide-react-native';
 import NotificationBell from '@/components/NotificationBell';
 import { useApi } from '@/hooks/useApi';
 import { api } from '@/services/api';
@@ -165,7 +164,7 @@ export default function FeedScreen() {
       </View>
 
       {/* <View style={styles.searchContainer}>
-        <Search size={20} color="#6B7280" style={styles.searchIcon} />
+        <Ionicons name="search-outline" size={20} color="#6B7280" style={styles.searchIcon} />
         <TextInput
           placeholder="Search posts..."
           style={styles.searchInput}

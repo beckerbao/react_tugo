@@ -1,7 +1,12 @@
+// TODO: verify icon mapping for: UserCircle
+// TODO: verify icon mapping for: Bookmark
+// TODO: verify icon mapping for: LogOut
+// TODO: verify icon mapping for: Trash2
+// TODO: verify icon mapping for: Crown
 import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Modal, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CircleUser as UserCircle, Bookmark as BookmarkIcon, History, Settings2, LogOut, Trash2, Crown } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import NotificationBell from '@/components/NotificationBell';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,25 +17,25 @@ const menuItems = [
   {
     id: 'edit-profile',
     title: 'Cập nhật',
-    icon: UserCircle,
+    icon: 'person-circle-outline',
     color: '#8B5CF6',
   },
   {
     id: 'delete-account',
     title: 'Xóa tài khoản',
-    icon: Trash2,
+    icon: 'trash-outline',
     color: '#EF4444',
   },
   {
     id: 'logout',
     title: 'Thoát',
-    icon: LogOut,
+    icon: 'log-out-outline',
     color: '#EF4444',
   },
   {
     id: 'lucky-wheel',
     title: 'Vòng quay may mắn',
-    icon: BookmarkIcon, // hoặc biểu tượng khác nếu bạn thích
+    icon: 'bookmark-outline', // hoặc biểu tượng khác nếu bạn thích
     color: '#10B981', // xanh lá nhẹ
   },
 ];
@@ -118,7 +123,7 @@ export default function ProfileScreen() {
         >
           <View style={styles.loyaltyContent}>
             <View style={styles.loyaltyIcon}>
-              <Crown size={24} color="#8B5CF6" />
+              <Ionicons name="crown-outline" size={24} color="#8B5CF6" />
             </View>
             <View style={styles.loyaltyInfo}>
               <Text style={styles.loyaltyTitle}>Chương trình TugoCare</Text>
@@ -139,7 +144,7 @@ export default function ProfileScreen() {
               onPress={() => handleMenuPress(item.id)}
             >
               <View style={styles.menuItemLeft}>
-                <item.icon size={24} color={item.color} />
+                <Ionicons name={item.icon} size={24} color={item.color} />
                 <Text style={[
                   styles.menuItemText,
                   (item.id === 'logout' || item.id === 'delete-account') && styles.dangerText

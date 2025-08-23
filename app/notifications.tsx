@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Bell, Ticket, Plane, Mail, Check } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useNotifications } from '@/hooks/useNotifications';
 import type { Database } from '@/types/supabase'; // Import the Database type
@@ -12,11 +12,11 @@ import { styles } from '@/styles/notifications';
 const getNotificationIcon = (type: string) => {
   switch (type) {
     case 'offer':
-      return Ticket;
+      return 'ticket-outline';
     case 'booking':
-      return Plane;
+      return 'airplane-outline';
     default:
-      return Mail;
+      return 'mail-outline';
   }
 };
 
@@ -100,11 +100,11 @@ export default function NotificationsScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
-          <ArrowLeft size={24} color="#8B5CF6" />
+          <Ionicons name="arrow-back" size={24} color="#8B5CF6" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Thông báo</Text>
         <TouchableOpacity onPress={markAllAsRead} style={styles.headerButton}>
-          <Check size={24} color="#8B5CF6" />
+          <Ionicons name="checkmark" size={24} color="#8B5CF6" />
         </TouchableOpacity>
       </View>
 
@@ -116,12 +116,12 @@ export default function NotificationsScreen() {
       >
         {notifications.length === 0 ? (
           <View style={styles.emptyState}>
-            <Bell size={48} color="#9CA3AF" />
+            <Ionicons name="notifications-outline" size={48} color="#9CA3AF" />
             <Text style={styles.emptyStateText}>Chưa có thông báo nào</Text>
           </View>
         ) : (
           notifications.map((notification) => {
-            const Icon = getNotificationIcon(notification.type);
+            const iconName = getNotificationIcon(notification.type);
             return (
               <TouchableOpacity
                 key={notification.id}
@@ -136,7 +136,8 @@ export default function NotificationsScreen() {
                   styles.iconContainer,
                   { backgroundColor: `${notification.read ? '#E5E7EB' : '#8B5CF6'}20` }
                 ]}>
-                  <Icon
+                  <Ionicons
+                    name={iconName}
                     size={24}
                     color={notification.read ? '#6B7280' : '#8B5CF6'}
                   />

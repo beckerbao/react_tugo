@@ -1,5 +1,6 @@
+// TODO: verify icon mapping for: X
 import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
-import { X, Check } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 interface PopUpModalProps {
   visible: boolean;
@@ -24,13 +25,13 @@ export default function PopUpModal({
     <View style={styles.overlay}>
       <View style={styles.container}>
         <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <X size={24} color="#1F2937" />
+          <Ionicons name="close" size={24} color="#1F2937" />
         </TouchableOpacity>
         
         <View style={styles.content}>
           {isBooking ? (
             <View style={[styles.iconContainer, styles.successIcon]}>
-              <Check size={32} color="#FFFFFF" />
+              <Ionicons name="checkmark" size={32} color="#FFFFFF" />
             </View>
           ) : (
             <View style={styles.imageContainer}>
