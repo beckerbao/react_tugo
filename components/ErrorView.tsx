@@ -1,5 +1,6 @@
+// TODO: verify icon mapping for: AlertCircle
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { CircleAlert as AlertCircle } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 interface ErrorViewProps {
   message: string;
@@ -9,7 +10,7 @@ interface ErrorViewProps {
 export default function ErrorView({ message, onRetry }: ErrorViewProps) {
   return (
     <View style={styles.container}>
-      <AlertCircle size={48} color="#EF4444" />
+      <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
       <Text style={styles.message}>{message}</Text>
       {onRetry && (
         <TouchableOpacity style={styles.retryButton} onPress={onRetry}>

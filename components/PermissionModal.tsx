@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Platform, Linking } from 'react-native';
-import { Bell } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 interface PermissionModalProps {
   visible: boolean;
@@ -25,7 +25,7 @@ export default function PermissionModal({ visible, isDenied, onAllow, onDeny }: 
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.iconContainer}>
-            <Bell size={32} color="#8B5CF6" />
+            <Ionicons name="notifications-outline" size={32} color="#8B5CF6" />
           </View>
           
           <Text style={styles.title}>Cho phép Tugo gửi thông báo</Text>

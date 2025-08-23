@@ -1,6 +1,9 @@
+// TODO: verify icon mapping for: Calendar
+// TODO: verify icon mapping for: Clock
+// TODO: verify icon mapping for: Ban
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, Calendar, Clock, Ban } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import NotificationBell from '@/components/NotificationBell';
@@ -71,7 +74,7 @@ export default function VoucherScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
-            <ArrowLeft size={24} color="#8B5CF6" />
+            <Ionicons name="arrow-back" size={24} color="#8B5CF6" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Not Found</Text>
           <NotificationBell count={3} />
@@ -87,7 +90,7 @@ export default function VoucherScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
-          <ArrowLeft size={24} color="#8B5CF6" />
+          <Ionicons name="arrow-back" size={24} color="#8B5CF6" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{voucher.title}</Text>
         <NotificationBell count={3} />
@@ -102,15 +105,15 @@ export default function VoucherScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Voucher Details</Text>
           <View style={styles.detailItem}>
-            <Calendar size={20} color="#6B7280" />
+            <Ionicons name="calendar-outline" size={20} color="#6B7280" />
             <Text style={styles.detailText}>Valid until {voucher.validUntil}</Text>
           </View>
           <View style={styles.detailItem}>
-            <Clock size={20} color="#6B7280" />
+            <Ionicons name="time-outline" size={20} color="#6B7280" />
             <Text style={styles.detailText}>{voucher.availability}</Text>
           </View>
           <View style={styles.detailItem}>
-            <Ban size={20} color="#6B7280" />
+            <Ionicons name="ban-outline" size={20} color="#6B7280" />
             <Text style={styles.detailText}>Maximum discount: {voucher.maxDiscount}</Text>
           </View>
         </View>

@@ -1,6 +1,9 @@
+// TODO: verify icon mapping for: Crown
+// TODO: verify icon mapping for: Award
+// TODO: verify icon mapping for: Star
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { Crown, Award, Star } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -27,13 +30,13 @@ const CARD_HEIGHT = 200;
 const getTierIcon = (tier: string) => {
   switch (tier) {
     case 'tugocare':
-      return Award;
+      return 'trophy-outline';
     case 'tugocare-plus':
-      return Star;
+      return 'star-outline';
     case 'tugocare-premium':
-      return Crown;
+      return 'crown-outline';
     default:
-      return Award;
+      return 'trophy-outline';
   }
 };
 
@@ -49,7 +52,7 @@ export default function LoyaltyCard({
 }: LoyaltyCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const flipAnimation = useSharedValue(0);
-  const IconComponent = getTierIcon(tier);
+  const iconName = getTierIcon(tier);
 
   const handleFlip = () => {
     const toValue = isFlipped ? 0 : 1;
@@ -83,7 +86,7 @@ export default function LoyaltyCard({
               <Text style={[styles.logo, { color }]}>TUGO</Text>
             </View>
             <View style={[styles.iconContainer, { backgroundColor: color }]}>
-              <IconComponent size={20} color="#FFFFFF" />
+              <Ionicons name={iconName} size={20} color="#FFFFFF" />
             </View>
           </View>
 

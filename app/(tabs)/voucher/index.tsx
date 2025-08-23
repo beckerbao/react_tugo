@@ -2,7 +2,11 @@ import React, { useEffect, useState, useCallback } from 'react'; // Import useCa
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, RefreshControl } from 'react-native';                                                                                 
 import { SafeAreaView } from 'react-native-safe-area-context';                                                                                                                                 
 import { useRouter, useFocusEffect } from 'expo-router'; // Import useFocusEffect                                                                                                              
-import { Tag, XCircle, CheckCircle, Clock, LogIn } from 'lucide-react-native'; // Added Clock, LogIn                                                                                           
+// TODO: verify icon mapping for: Tag
+// TODO: verify icon mapping for: XCircle
+// TODO: verify icon mapping for: CheckCircle
+// TODO: verify icon mapping for: Clock
+import { Ionicons } from '@expo/vector-icons'; // Replaced icons
 import { useAuth } from '@/hooks/useAuth';                                                                                                                                                     
 import { api, UserVoucher, ApiError, ApiResponse } from '@/services/api'; // Import UserVoucher and ApiError, ApiResponse                                                                      
 import LoadingView from '@/components/LoadingView'; // Import LoadingView                                                                                                                      
@@ -93,7 +97,7 @@ export default function VouchersScreen() {
       {/* Render guest view if not authenticated */}                                                                                                                                           
       {!isAuthenticated && (                                                                                                                                                                   
         <View style={styles.guestContainer}>                                                                                                                                                   
-          <LogIn size={48} color="#8B5CF6" />                                                                                                                                                  
+          <Ionicons name="log-in-outline" size={48} color="#8B5CF6" />
           <Text style={styles.guestTitle}>Login Required</Text>                                                                                                                                
           <Text style={styles.guestMessage}>                                                                                                                                                   
             Please login to view and collect vouchers 
@@ -156,33 +160,45 @@ export default function VouchersScreen() {
                             {voucher.voucher_name}                                                                                                                                             
                           </Text>                                                                                                                                                              
                           {voucher.status === 'expired' && (                                                                                                                                   
-                            <XCircle                                                                                                                                                           
-                              size={16}                                                                                                                                                        
-                              color="#EF4444"                                                                                                                                                  
-                              style={styles.statusIcon}                                                                                                                                        
-                            />                                                                                                                                                                 
+                            <Ionicons
+                              name="close-circle-outline"
+                              size={16}
+                              color="#EF4444"
+                              style={styles.statusIcon}
+                            />
                           )}                                                                                                                                                                   
                           {voucher.status !== 'expired' &&                                                                                                                                     
                             voucher.usage_status === 'used' && (                                                                                                                               
-                              <CheckCircle                                                                                                                                                     
-                                size={16}                                                                                                                                                      
-                                color="#EF4444"                                                                                                                                                
-                                style={styles.statusIcon}                                                                                                                                      
-                              />                                                                                                                                                               
+                              <Ionicons
+                                name="checkmark-circle-outline"
+                                size={16}
+                                color="#EF4444"
+                                style={styles.statusIcon}
+                              />
                             )}
-                          {voucher.claim_status === 'claimed' && (                                                                                                                                                   
-                            <Tag size={16} color="#10B981" style={styles.statusIcon} />                                                                                                                              
-                          )}                                                                                                                                                                                         
+                          {voucher.claim_status === 'claimed' && (
+                            <Ionicons
+                              name="pricetag-outline"
+                              size={16}
+                              color="#10B981"
+                              style={styles.statusIcon}
+                            />
+                          )}
                           {/* Display used icon if voucher is used */}                                                                                                                                               
-                          {voucher.usage_status === 'used' && (                                                                                                                                                      
-                            <CheckCircle size={16} color="#6B7280" style={styles.statusIcon} />                                                                                                                      
-                          )}                                                                                                                                                                  
+                          {voucher.usage_status === 'used' && (
+                            <Ionicons
+                              name="checkmark-circle-outline"
+                              size={16}
+                              color="#6B7280"
+                              style={styles.statusIcon}
+                            />
+                          )}
                         </View>                                                                                                                                                                
                         <Text style={styles.voucherDiscount}>                                                                                                                                  
                           {voucher.term_condition}                                                                                                                                             
                         </Text>                                                                                                                                                                
                         <View style={styles.validityContainer}>                                                                                                                                
-                          <Clock size={16} color="#6B7280" />                                                                                                                                  
+                          <Ionicons name="time-outline" size={16} color="#6B7280" />
                           <Text style={styles.validityText}>                                                                                                                                   
                             Valid until{' '}                                                                                                                                                   
                             {new Date(voucher.valid_until).toLocaleDateString()}                                                                                                               
