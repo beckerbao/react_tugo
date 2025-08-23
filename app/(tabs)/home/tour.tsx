@@ -59,7 +59,7 @@ export default function TourScreen() {
             <Ionicons name="arrow-back" size={24} color="#8B5CF6" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Loading...</Text>
-          <NotificationBell count={3} />
+          <NotificationBell />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#8B5CF6" />
@@ -76,7 +76,7 @@ export default function TourScreen() {
             <Ionicons name="arrow-back" size={24} color="#8B5CF6" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Error</Text>
-          <NotificationBell count={3} />
+          <NotificationBell />
         </View>
         <ErrorView 
           message={error?.message || 'Tour not found'} 
@@ -98,10 +98,10 @@ export default function TourScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
-          <ArrowLeft size={24} color="#8B5CF6" />
+          <Ionicons name="arrow-back" size={24} color="#8B5CF6" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{tour.name}</Text>
-        <NotificationBell count={3} />
+        <NotificationBell />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
