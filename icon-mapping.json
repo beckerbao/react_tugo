@@ -1,0 +1,16 @@
+{
+  "ArrowLeft":   { "lib": "Ionicons", "name": "arrow-back" },
+  "RotateCw":    { "lib": "Feather",  "name": "rotate-cw" },
+  "Bell":        { "lib": "Ionicons", "name": "notifications-outline" },
+  "Ticket":      { "lib": "Ionicons", "name": "ticket-outline" },
+  "Plane":       { "lib": "Ionicons", "name": "airplane-outline" },
+  "Mail":        { "lib": "Ionicons", "name": "mail-outline" },
+  "Check":       { "lib": "Ionicons", "name": "checkmark" },
+  "Chrome":      { "lib": "Feather",  "name": "home" },
+  "Newspaper":   { "lib": "Ionicons", "name": "newspaper-outline" },
+  "Search":      { "lib": "Ionicons", "name": "search-outline" },
+  "LogIn":       { "lib": "Ionicons", "name": "log-in-outline" },
+  "User":        { "lib": "Ionicons", "name": "person-outline" }
+
+  // Thêm các icon khác khi thấy trong lucide-icons-used.txt
+}
